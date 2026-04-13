@@ -1,0 +1,885 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>FidéliTab — Ma Carte</title>
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#3C3489">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="FidéliTab">
+<link rel="apple-touch-icon" href="/icon-192.png">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root { --purple:#3C3489; --green:#1D9E75; --green-l:#E1F5EE; --red:#D85A30; --text:#111; --text2:#6b7280; --border:#e5e7eb; --bg:#f9fafb; }
+  html, body { height:100%; background:var(--bg); font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; color:var(--text); -webkit-tap-highlight-color:transparent; }
+  #app { max-width:430px; margin:0 auto; min-height:100vh; min-height:100dvh; background:#fff; display:flex; flex-direction:column; }
+  .screen { display:flex; flex-direction:column; flex:1; animation:fadeUp .2s ease; }
+  @keyframes fadeUp { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
+
+  /* HEADER */
+  .header { background:var(--purple); padding:env(safe-area-inset-top, 0) 0 0; }
+  .header-inner { padding:18px 20px 16px; display:flex; align-items:center; gap:10px; }
+  .h-name { font-size:13px; font-weight:600; color:#fff; }
+  .h-addr { font-size:11px; color:rgba(255,255,255,.6); margin-top:1px; }
+
+  /* USER HEADER */
+  .user-hd { background:var(--purple); padding:env(safe-area-inset-top,0) 0 0; }
+  .user-inner { padding:18px 20px 16px; }
+  .user-row { display:flex; align-items:center; gap:12px; }
+  .uav { width:44px; height:44px; border-radius:50%; background:rgba(255,255,255,.18); display:flex; align-items:center; justify-content:center; color:#fff; font-weight:700; font-size:17px; flex-shrink:0; }
+  .uname { font-size:16px; font-weight:600; color:#fff; }
+  .upts  { font-size:13px; color:rgba(255,255,255,.7); margin-top:2px; }
+  .rbanner { background:rgba(255,255,255,.15); border-radius:10px; padding:10px 14px; margin-top:12px; font-size:13px; color:#fff; font-weight:500; }
+
+  /* CONTENT */
+  .content { flex:1; padding:24px 20px; display:flex; flex-direction:column; gap:16px; overflow-y:auto; }
+  .title { font-size:21px; font-weight:700; }
+  .sub   { font-size:14px; color:var(--text2); line-height:1.6; margin-top:4px; }
+
+  /* INPUTS */
+  .field { display:flex; flex-direction:column; gap:6px; }
+  .field label { font-size:13px; font-weight:600; display:flex; justify-content:space-between; }
+  .field label span { font-size:11px; color:var(--text2); font-weight:400; }
+  .inp { width:100%; padding:14px 16px; border:1.5px solid var(--border); border-radius:12px; font-size:16px; font-family:inherit; background:#fff; color:var(--text); -webkit-appearance:none; appearance:none; }
+  .inp:focus { outline:none; border-color:var(--purple); }
+  .inp-phone { text-align:center; letter-spacing:3px; font-size:22px; font-weight:600; }
+  .err-msg { font-size:13px; color:var(--red); }
+  .badge { display:inline-block; background:var(--green-l); color:#065f46; font-size:12px; font-weight:600; padding:3px 10px; border-radius:20px; margin-bottom:10px; }
+
+  /* RGPD */
+  .rgpd-box { background:#f8f9ff; border:1px solid #e0deff; border-radius:12px; padding:14px; }
+  .rgpd-title { font-size:13px; font-weight:600; margin-bottom:6px; }
+  .rgpd-text { font-size:12px; color:var(--text2); line-height:1.6; margin-bottom:10px; }
+  .rgpd-check { display:flex; align-items:flex-start; gap:10px; cursor:pointer; }
+  .rgpd-check input { margin-top:2px; width:17px; height:17px; flex-shrink:0; accent-color:var(--purple); }
+  .rgpd-check span { font-size:13px; line-height:1.5; }
+
+  /* BUTTONS */
+  .btn { width:100%; padding:16px; border-radius:14px; border:none; font-size:16px; font-weight:600; cursor:pointer; font-family:inherit; -webkit-tap-highlight-color:transparent; }
+  .btn-purple { background:var(--purple); color:#fff; }
+  .btn-green  { background:var(--green);  color:#fff; }
+  .btn-ghost  { background:transparent; color:var(--text2); font-size:13px; }
+
+  /* PRODUCT CHIP */
+  .prod-chip { border-radius:12px; padding:12px 14px; display:flex; align-items:center; gap:10px; }
+  .prod-chip.tabac  { background:#FAEEDA; }
+  .prod-chip.cafe   { background:#FEF3C7; }
+  .prod-chip.presse { background:#F0FDF4; }
+  .prod-chip.ecig   { background:#EDE9FE; }
+
+  /* CARDS SCROLL */
+  .cards-wrap { flex:1; padding:14px 20px; overflow-y:auto; }
+  .sec-lbl { font-size:11px; font-weight:600; color:var(--text2); text-transform:uppercase; letter-spacing:.06em; margin-bottom:12px; }
+  .stamp-card { background:#fff; border:1px solid var(--border); border-radius:14px; padding:14px; margin-bottom:10px; }
+  .stamp-card.full { background:#EEEDFE; border-color:#c4c0f0; }
+  .sc-top { display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
+  .dots-row { display:flex; gap:4px; flex-wrap:wrap; }
+  .dot { width:24px; height:24px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:700; }
+  .dot.on  { background:var(--green-l); border:2px solid var(--green); color:var(--green); }
+  .dot.off { background:#f3f4f6; border:1.5px dashed #d1d5db; }
+  .pbar { height:3px; background:#f3f4f6; border-radius:2px; overflow:hidden; margin-top:8px; }
+  .pbar-fill { height:100%; background:var(--green); border-radius:2px; }
+
+  /* ★ QR SCREEN — le cœur du flux FaveCard */
+  .qr-screen { flex:1; display:flex; flex-direction:column; }
+  .qr-header { background:var(--purple); padding:env(safe-area-inset-top,0) 0 0; }
+  .qr-header-inner { padding:16px 20px 14px; }
+  .qr-back { font-size:12px; color:rgba(255,255,255,.7); cursor:pointer; margin-bottom:8px; display:inline-block; }
+  .qr-product-pill { display:inline-flex; align-items:center; gap:6px; background:rgba(255,255,255,.15); border-radius:20px; padding:6px 12px; }
+  .qr-product-name { font-size:13px; font-weight:600; color:#fff; }
+  .qr-product-sub  { font-size:11px; color:rgba(255,255,255,.7); margin-top:2px; }
+
+  .qr-body { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:24px 20px; text-align:center; }
+  .qr-instruction { font-size:14px; color:var(--text2); margin-bottom:20px; line-height:1.5; }
+  .qr-card { background:#1e1b4b; border-radius:20px; padding:24px 20px; display:inline-flex; flex-direction:column; align-items:center; gap:14px; margin-bottom:20px; }
+  .qr-label { font-size:10px; font-weight:600; color:rgba(255,255,255,.5); text-transform:uppercase; letter-spacing:.08em; }
+  .qr-wrap { background:#fff; border-radius:12px; padding:10px; }
+  .qr-name { font-size:13px; font-weight:600; color:rgba(255,255,255,.8); }
+  .qr-pts  { font-size:11px; color:rgba(255,255,255,.5); }
+  .qr-progress { font-size:12px; color:rgba(255,255,255,.6); }
+
+  /* CONFIRM */
+  .confirm { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:36px 24px; text-align:center; position:relative; }
+  .c-emoji { font-size:64px; margin-bottom:16px; animation:pop .4s cubic-bezier(.34,1.56,.64,1); }
+  @keyframes pop { from{transform:scale(.3);opacity:0} 60%{transform:scale(1.15)} to{transform:scale(1);opacity:1} }
+  .c-title { font-size:22px; font-weight:700; margin-bottom:8px; }
+  .c-sub   { font-size:14px; color:var(--text2); line-height:1.7; margin-bottom:24px; }
+  .reward-box { background:#EEEDFE; border-radius:14px; padding:14px 20px; margin-bottom:24px; font-size:15px; font-weight:600; color:#3C3489; width:100%; }
+  .bottom-bar { padding:0 20px 24px; padding-bottom:max(24px, env(safe-area-inset-bottom)); display:flex; flex-direction:column; gap:10px; }
+  .info-box { background:var(--bg); border-radius:12px; padding:12px 14px; font-size:12px; color:var(--text2); line-height:1.6; display:flex; gap:8px; }
+  .footer-txt { padding:14px 20px; text-align:center; font-size:12px; color:var(--text2); border-top:1px solid var(--border); }
+  .loading { flex:1; display:flex; align-items:center; justify-content:center; flex-direction:column; gap:14px; color:var(--text2); font-size:14px; }
+  .spinner { width:30px; height:30px; border:3px solid #e5e7eb; border-top-color:var(--purple); border-radius:50%; animation:spin .7s linear infinite; }
+  @keyframes spin { to{transform:rotate(360deg)} }
+  .confetti-wrap { position:absolute; top:0; left:0; right:0; bottom:0; pointer-events:none; overflow:hidden; }
+  .cdot { position:absolute; width:8px; height:8px; border-radius:50%; animation:cfall .9s ease forwards; }
+  @keyframes cfall { 0%{transform:translateY(0) rotate(0);opacity:1} 100%{transform:translateY(100px) rotate(400deg);opacity:0} }
+  .install-banner { position:fixed; bottom:16px; left:16px; right:16px; background:#1e1b4b; color:#fff; border-radius:14px; padding:14px 16px; display:flex; align-items:center; gap:12px; z-index:9999; box-shadow:0 4px 20px rgba(0,0,0,.3); animation:fadeUp .3s ease; }
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script>
+// ============================================================
+// ⚙️  CONFIGURATION
+// ============================================================
+const SUPABASE_URL = 'https://cgyvmrxpoofrnturffxl.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNneXZtcnhwb29mcm50dXJmZnhsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIzNjkxNjQsImV4cCI6MjA4Nzk0NTE2NH0.0JNkokFJOshJnzyrBOSbgrnyFHeLvA5pMaaL1jP8kq8';
+const SHOP = { name: 'Tabac Presse Grandclément', addr: 'Place Grandclément, Villeurbanne' };
+const CODE_EXPIRE_SECONDS = 120;
+// ============================================================
+
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// Récupère le produit depuis l'URL (?p=tabac) — flux FaveCard
+const URL_PARAMS = new URLSearchParams(window.location.search);
+const PRODUCT_FROM_QR = URL_PARAMS.get('p'); // 'tabac' | 'cafe' | 'presse' | 'ecig' | null
+
+let state = {
+  screen: 'phone',
+  phone: '', member: null,
+  rules: [], cards: {},
+  selRuleId: PRODUCT_FROM_QR ? null : null, // sera résolu après chargement
+  codeId: null, codeVal: null, codeExpiresAt: null,
+  confirmedCount: 0, isComplete: false,
+  errors: {},
+  form: { prenom:'', nom:'', dob:'', email:'', rgpd:false }
+};
+let codeTimer = null;
+
+// ── HELPERS ──
+const fmt   = v => v.replace(/\D/g,'').slice(0,10).replace(/(\d{2})(?=\d)/g,'$1 ').trim();
+const clean = v => v.replace(/\s/g,'');
+const $app  = () => document.getElementById('app');
+
+function el(tag, attrs, ...ch) {
+  const n = document.createElement(tag);
+  if (attrs) Object.entries(attrs).forEach(([k,v]) => {
+    if (k === 'class') n.className = v;
+    else if (k.startsWith('on')) n[k] = v;
+    else n[k] = v;
+  });
+  ch.flat().forEach(c => { if (c != null && c !== false) n.appendChild(typeof c === 'string' ? document.createTextNode(c) : c); });
+  return n;
+}
+
+function header() {
+  return el('div', {class:'header'},
+    el('div', {class:'header-inner'},
+      el('span', {style:'font-size:20px'}, '🏷️'),
+      el('div', null, el('div', {class:'h-name'}, SHOP.name), el('div', {class:'h-addr'}, SHOP.addr))
+    )
+  );
+}
+
+function confetti() {
+  const cols = ['#1D9E75','#534AB7','#F5A623','#D85A30','#185FA5'];
+  const w = el('div', {class:'confetti-wrap'});
+  for (let i=0; i<18; i++) {
+    const d = el('div', {class:'cdot'});
+    d.style.cssText = `background:${cols[i%5]};left:${10+Math.random()*80}%;top:${5+Math.random()*50}%;animation-delay:${Math.random()*.6}s`;
+    w.appendChild(d);
+  }
+  return w;
+}
+
+// ── SUPABASE ──
+async function findMember(phone)    { const {data} = await sb.from('membres').select('*').eq('telephone',phone).single(); return data; }
+async function createMember(d)      { const {data,error} = await sb.from('membres').insert([d]).select().single(); if(error) throw error; return data; }
+async function getRules()           { const {data} = await sb.from('regles_tampons').select('*').eq('actif',true).order('ordre'); return data||[]; }
+async function getCards(mId)        { const {data} = await sb.from('cartes_tampons').select('regle_id,compteur').eq('membre_id',mId); const m={}; (data||[]).forEach(c=>m[c.regle_id]=c.compteur); return m; }
+async function pollCodeUsed(codeId) { const {data} = await sb.from('codes_validation').select('utilise').eq('id',codeId).single(); return data?.utilise||false; }
+
+async function generateCode(memberId, ruleId) {
+  const code = (Math.floor(Math.random()*9000)+1000).toString();
+  const expireAt = new Date(Date.now()+CODE_EXPIRE_SECONDS*1000);
+  const {data,error} = await sb.from('codes_validation').insert([{
+    code, membre_id:memberId, regle_id:ruleId,
+    expire_le:expireAt.toISOString(), utilise:false
+  }]).select().single();
+  if (error) throw error;
+  return { id:data.id, code, expiresAt:expireAt.getTime() };
+}
+
+async function addStamp(memberId, ruleId) {
+  const rule = state.rules.find(r=>r.id===ruleId);
+  if (!rule) return;
+  const count = (state.cards[ruleId]||0)+1;
+  await sb.from('cartes_tampons').upsert({
+    membre_id:memberId, regle_id:ruleId, compteur:count,
+    mis_a_jour_le:new Date().toISOString()
+  }, {onConflict:'membre_id,regle_id'});
+  await sb.from('membres').update({
+    points:(state.member.points||0)+rule.points_par_tampon,
+    visites:(state.member.visites||0)+1
+  }).eq('id',memberId);
+  await sb.from('transactions').insert([{
+    membre_id:memberId, type:'tampon',
+    points:rule.points_par_tampon,
+    description:`Tampon ${rule.nom}`, regle_id:ruleId
+  }]);
+  state.cards[ruleId] = count;
+  state.member.points = (state.member.points||0)+rule.points_par_tampon;
+  state.confirmedCount = count;
+  state.isComplete = count >= rule.objectif;
+}
+
+// ── QR CODE DISPLAY ──
+function makeQR(containerId, text, size=160) {
+  const el = document.getElementById(containerId);
+  if (!el || !window.QRCode) return;
+  el.innerHTML = '';
+  try { new QRCode(el, {text, width:size, height:size, colorDark:'#1a1a1a', colorLight:'#ffffff'}); } catch(e) {}
+}
+
+// ── SCREENS ──
+
+// PHONE
+function renderPhone() {
+  const app = $app(); app.innerHTML = '';
+  const inp = el('input', {
+    class:'inp inp-phone', type:'tel', placeholder:'06 XX XX XX XX', value:fmt(state.phone),
+    oninput: e => { state.phone=clean(e.target.value); e.target.value=fmt(state.phone); },
+    onkeydown: e => { if(e.key==='Enter') doCheckPhone(); }
+  });
+  const s = el('div', {class:'screen'});
+  s.appendChild(header());
+  s.appendChild(el('div', {class:'content'},
+    el('div', null,
+      el('div', {class:'title'}, 'Bienvenue !'),
+      el('div', {class:'sub'}, PRODUCT_FROM_QR
+        ? `Vous avez scanné le QR ${PRODUCT_FROM_QR}. Entrez votre numéro pour valider votre tampon.`
+        : 'Entrez votre numéro pour accéder à votre carte ou vous inscrire gratuitement.')
+    ),
+    inp,
+    state.errors.phone ? el('div', {class:'err-msg', style:'text-align:center'}, state.errors.phone) : null,
+    el('button', {class:'btn btn-purple', onclick:doCheckPhone}, 'Continuer →'),
+    el('div', {class:'info-box', style:'margin-top:auto'},
+      el('span', null, '🔒'), el('span', null, 'Vos données sont protégées.'))
+  ));
+  app.appendChild(s);
+  setTimeout(() => inp.focus(), 50);
+}
+
+// REGISTER
+function renderRegister() {
+  const {form, errors} = state;
+  const app = $app(); app.innerHTML = '';
+  const s = el('div', {class:'screen'});
+  s.appendChild(header());
+  const mkF = (type, ph, key, lbl, hint) => el('div', {class:'field'},
+    el('label', null, lbl, errors[key] ? null : (hint ? el('span', null, hint) : null)),
+    el('input', {class:'inp'+(errors[key]?' err-field':''), type, placeholder:ph, value:form[key]||'',
+      oninput:e=>{ state.form[key]=e.target.value; }}),
+    errors[key] ? el('div', {class:'err-msg'}, errors[key]) : null
+  );
+  const cb = el('input', {type:'checkbox', onchange:e=>{ state.form.rgpd=e.target.checked; }});
+  cb.checked = form.rgpd;
+  s.appendChild(el('div', {class:'content'},
+    el('div', null,
+      el('span', {class:'badge'}, 'Première visite'),
+      el('div', {class:'title', style:'margin-top:8px'}, 'Créez votre compte'),
+      el('div', {class:'sub'}, 'Numéro : ', el('strong', null, fmt(state.phone)))
+    ),
+    mkF('text', 'Votre prénom', 'prenom', 'Prénom', null),
+    mkF('text', 'Votre nom de famille', 'nom', 'Nom', null),
+    mkF('date', '', 'dob', 'Date de naissance', 'Optionnel — bonus anniversaire'),
+    mkF('email', 'votre@email.fr', 'email', 'Email', 'Optionnel — récap de points'),
+    el('div', {class:'rgpd-box'},
+      el('div', {class:'rgpd-title'}, 'Protection de vos données (RGPD)'),
+      el('div', {class:'rgpd-text'}, `${SHOP.name} collecte vos données uniquement pour votre programme de fidélité. Aucune transmission à des tiers. Suppression possible en caisse.`),
+      el('label', {class:'rgpd-check'}, cb,
+        el('span', {style:errors.rgpd?'color:var(--red)':''}, `J'accepte que mes données soient utilisées pour le programme de fidélité de ${SHOP.name} *`)
+      ),
+      errors.rgpd ? el('div', {class:'err-msg', style:'margin-top:6px'}, errors.rgpd) : null
+    ),
+    el('button', {class:'btn btn-green', onclick:doRegister}, "M'inscrire gratuitement →"),
+    el('button', {class:'btn btn-ghost', onclick:()=>{ state.screen='phone'; state.errors={}; renderPhone(); }}, '← Modifier le numéro')
+  ));
+  app.appendChild(s);
+}
+
+// LOADING
+function renderLoading() {
+  const app = $app(); app.innerHTML = '';
+  const s = el('div', {class:'screen'});
+  s.appendChild(header());
+  s.appendChild(el('div', {class:'loading'}, el('div', {class:'spinner'}), el('div', null, 'Chargement...')));
+  app.appendChild(s);
+}
+
+// WELCOME
+function renderWelcome() {
+  const app = $app(); app.innerHTML = '';
+  const s = el('div', {class:'screen', style:'position:relative'});
+  s.appendChild(confetti());
+  const grid = el('div', {style:'display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%;margin-bottom:24px'});
+  state.rules.forEach(r => grid.appendChild(
+    el('div', {style:'background:#f9fafb;border-radius:12px;padding:12px;text-align:center'},
+      el('div', {style:'font-size:22px;margin-bottom:4px'}, r.emoji),
+      el('div', {style:'font-size:13px;font-weight:600'}, r.nom),
+      el('div', {style:'font-size:11px;color:var(--text2);margin-top:2px'}, r.objectif+' achats → offert')
+    )
+  ));
+  s.appendChild(el('div', {class:'confirm'},
+    el('div', {class:'c-emoji'}, '🎉'),
+    el('div', {class:'c-title'}, 'Bienvenue '+(state.member.nom.split(' ')[0])+' !'),
+    el('div', {class:'c-sub'}, 'Votre carte de fidélité est créée.\nScan le QR produit pour votre prochain achat.'),
+    grid,
+    el('button', {class:'btn btn-purple', onclick:renderHome}, 'Voir mes cartes →')
+  ));
+  app.appendChild(s);
+}
+
+// HOME
+function renderHome() {
+  const ready = state.rules.filter(r => (state.cards[r.id]||0) >= r.objectif);
+  const app = $app(); app.innerHTML = '';
+  const s = el('div', {class:'screen'});
+  const uH = el('div', {class:'user-hd'},
+    el('div', {class:'user-inner'},
+      el('div', {class:'user-row'},
+        el('div', {class:'uav'}, state.member.nom[0]),
+        el('div', null,
+          el('div', {class:'uname'}, 'Bonjour '+(state.member.nom.split(' ')[0])+'  !'),
+          el('div', {class:'upts'}, (state.member.points||0).toLocaleString('fr-FR')+' points')
+        )
+      ),
+      ready.length ? el('div', {class:'rbanner'}, `🎉 ${ready.length} récompense(s) disponible(s) — demandez en caisse !`) : null
+    )
+  );
+  s.appendChild(uH);
+  const wrap = el('div', {class:'cards-wrap'});
+  wrap.appendChild(el('div', {class:'sec-lbl'}, 'Mes cartes tampons'));
+  state.rules.forEach(r => {
+    const count = state.cards[r.id]||0, full = count>=r.objectif, pct = Math.round(count/r.objectif*100);
+    const card = el('div', {class:'stamp-card'+(full?' full':'')});
+    const dots = el('div', {class:'dots-row'});
+    for (let i=0; i<r.objectif; i++) dots.appendChild(el('div', {class:'dot '+(i<count?'on':'off')}, i<count?'✓':''));
+    card.appendChild(el('div', {class:'sc-top'},
+      el('div', {style:'display:flex;gap:8px;align-items:center'},
+        el('span', {style:'font-size:20px'}, r.emoji),
+        el('div', null,
+          el('div', {style:'font-size:14px;font-weight:600;color:'+(full?'#3C3489':'var(--text)')}, r.nom),
+          el('div', {style:'font-size:12px;color:'+(full?'#534AB7':'var(--text2)')}, full?'✓ Récompense disponible !':r.recompense)
+        )
+      ),
+      el('span', {style:'font-size:13px;font-weight:600;color:'+(full?'#3C3489':'var(--text2)')}, count+'/'+r.objectif)
+    ));
+    card.appendChild(dots);
+    if (!full) { const pb=el('div',{class:'pbar'}); const pf=el('div',{class:'pbar-fill'}); pf.style.width=pct+'%'; pb.appendChild(pf); card.appendChild(pb); }
+    wrap.appendChild(card);
+  });
+  s.appendChild(wrap);
+  s.appendChild(el('div', {class:'bottom-bar'},
+    el('div', {style:'background:#f8f9ff;border:1px solid #e0deff;border-radius:12px;padding:12px 14px;font-size:13px;color:#534AB7;text-align:center;line-height:1.5'},
+      '📷 Ou scannez le QR code du produit en caisse pour ajouter un tampon automatiquement'
+    ),
+    el('button', {class:'btn btn-green', onclick:()=>{state.screen='select';renderSelect();}}, "J\'ai fait un achat →"),
+    el('button', {class:'btn btn-ghost', onclick:doLogout}, '← Se déconnecter')
+  ));
+  app.appendChild(s);
+}
+
+// ── SELECT PRODUCT ──
+function renderSelect() {
+  const app = $app(); app.innerHTML = '';
+  const s = el('div', {class:'screen'});
+  s.appendChild(header());
+  const content = el('div', {class:'content', style:'padding-top:20px'});
+  content.appendChild(el('div', {style:'font-size:11px;color:#6366f1;cursor:pointer;margin-bottom:10px', onclick:renderHome}, '← Retour à mes cartes'));
+  content.appendChild(el('div', {class:'title'}, "Qu'avez-vous acheté ?"));
+  content.appendChild(el('div', {class:'sub', style:'margin-bottom:14px'}, 'Sélectionnez pour générer votre code'));
+  state.rules.forEach(r => {
+    const count = state.cards[r.id]||0, full = count>=r.objectif, left = r.objectif-count;
+    const btn = el('button', {class:'prod-btn', onclick:()=>doSelectProd(r.id)},
+      el('span', {style:'font-size:24px'}, r.emoji),
+      el('div', {style:'flex:1'},
+        el('div', {style:'font-size:14px;font-weight:600'}, r.nom),
+        el('div', {style:'font-size:12px;color:var(--text2);margin-top:2px'}, full?'🎉 Récompense dispo !':left===1?'Encore 1 → '+r.recompense:left+' achats → '+r.recompense)
+      ),
+      el('div', {style:'background:'+(full?'#EEEDFE':'#f3f4f6')+';color:'+(full?'#3C3489':'var(--text2)')+';padding:3px 9px;border-radius:20px;font-size:11px;font-weight:600'}, full?'Offert':count+'/'+r.objectif)
+    );
+    content.appendChild(btn);
+  });
+  s.appendChild(content);
+  app.appendChild(s);
+}
+
+
+// ★ QR SCREEN — flux FaveCard : client montre son QR
+function renderQRScreen(ruleId) {
+  const r = state.rules.find(x=>x.id===ruleId);
+  if (!r) { renderHome(); return; }
+  const count = state.cards[r.id]||0, full = count>=r.objectif, left = r.objectif-count;
+  const app = $app(); app.innerHTML = '';
+  const s = el('div', {class:'qr-screen'});
+
+  // Header with product
+  const qhd = el('div', {class:'qr-header'},
+    el('div', {class:'qr-header-inner'},
+      el('span', {class:'qr-back', onclick:renderHome}, '← Mes cartes'),
+      el('div', {class:'qr-product-pill'},
+        el('span', {style:'font-size:18px'}, r.emoji),
+        el('div', null,
+          el('div', {class:'qr-product-name'}, r.nom),
+          el('div', {class:'qr-product-sub'}, full?'Récompense disponible !':left===1?'Encore 1 achat !':left+' achats → offert')
+        )
+      )
+    )
+  );
+  s.appendChild(qhd);
+
+  // QR body
+  const body = el('div', {class:'qr-body'});
+  body.appendChild(el('div', {class:'qr-instruction'}, 'Montrez ce QR code au caissier.\nIl le scanne avec son téléphone — tampon ajouté automatiquement.'));
+
+  const qrCard = el('div', {class:'qr-card'},
+    el('div', {class:'qr-label'}, 'Mon QR code personnel'),
+    el('div', {class:'qr-wrap', id:'clientQRWrap'}),
+    el('div', {class:'qr-name'}, state.member.nom),
+    el('div', {class:'qr-progress'}, count+'/'+r.objectif+' tampons '+r.nom)
+  );
+  body.appendChild(qrCard);
+
+  // Dots progress
+  const dots = el('div', {class:'dots-row', style:'margin-bottom:16px'});
+  for (let i=0; i<r.objectif; i++) dots.appendChild(el('div', {class:'dot '+(i<count?'on':'off')}, i<count?'✓':''));
+  body.appendChild(dots);
+
+  if (full) {
+    body.appendChild(el('div', {style:'background:#EEEDFE;color:#3C3489;border-radius:12px;padding:12px 16px;font-size:14px;font-weight:600;text-align:center;max-width:280px'},
+      '🎉 '+r.recompense
+    ));
+  }
+
+  s.appendChild(body);
+  app.appendChild(s);
+
+  // Generate QR — encode member ID + rule ID + timestamp
+  setTimeout(() => {
+    const adminUrl = `https://bohmust.github.io/fidelitab/admin.html?scan=${state.member.id}&rule=${ruleId}`;
+    makeQR('clientQRWrap', adminUrl, 160);
+    // Start polling for stamp validation
+    startPollingForStamp(ruleId);
+  }, 100);
+}
+
+// CONFIRM
+function renderConfirm(ruleId) {
+  const r = state.rules.find(x=>x.id===ruleId);
+  const count = state.confirmedCount, full = state.isComplete;
+  const app = $app(); app.innerHTML = '';
+  const s = el('div', {class:'screen', style:'position:relative'});
+  if (full) s.appendChild(confetti());
+  const dots = el('div', {class:'dots-row', style:'justify-content:center;margin-bottom:20px'});
+  for (let i=0; i<r.objectif; i++) dots.appendChild(el('div', {class:'dot '+(i<count?'on':'off')}, i<count?'✓':''));
+  s.appendChild(el('div', {class:'confirm'},
+    el('div', {class:'c-emoji'}, full?'🎉':r.emoji),
+    el('div', {class:'c-title', style:full?'color:#3C3489':''}, full?'Récompense débloquée !':'Tampon ajouté !'),
+    el('div', {class:'c-sub'}, full?`Carte ${r.nom} complète !\nMontrez cet écran en caisse.`:'+1 tampon enregistré sur votre carte '+r.nom+'.'),
+    full ? el('div', {class:'reward-box'}, r.recompense) : dots,
+    el('button', {class:'btn '+(full?'btn-purple':'btn-green'), style:'max-width:280px', onclick:renderHome}, 'Voir mes cartes →'),
+    el('button', {class:'btn btn-ghost', style:'margin-top:6px', onclick:doLogout}, 'Se déconnecter')
+  ));
+  s.appendChild(el('div', {class:'footer-txt'}, SHOP.name+' · Merci de votre visite 😊'));
+  app.appendChild(s);
+}
+
+// ── POLLING — attend que l'admin scanne et valide ──
+function startPollingForStamp(ruleId) {
+  if (codeTimer) clearInterval(codeTimer);
+  // Poll la table transactions pour voir si un tampon vient d'être ajouté
+  // L'admin scanne le QR client → côté admin le tampon est enregistré → le client voit la confirmation
+  let lastCount = state.cards[ruleId]||0;
+  codeTimer = setInterval(async () => {
+    try {
+      const fresh = await getCards(state.member.id);
+      const newCount = fresh[ruleId]||0;
+      if (newCount > lastCount) {
+        clearInterval(codeTimer);
+        state.cards = fresh;
+        state.confirmedCount = newCount;
+        state.isComplete = newCount >= (state.rules.find(r=>r.id===ruleId)?.objectif||99);
+        await refreshMember();
+        renderConfirm(ruleId);
+      }
+    } catch(e) {}
+  }, 2000);
+}
+
+async function refreshMember() {
+  const {data} = await sb.from('membres').select('points').eq('id',state.member.id).single();
+  if (data) state.member.points = data.points;
+}
+
+// ── ACTIONS ──
+async function doCheckPhone() {
+  const c = clean(state.phone);
+  if (c.length < 10) { state.errors={phone:'Entrez un numéro à 10 chiffres'}; renderPhone(); return; }
+  renderLoading();
+  try {
+    const member = await findMember(c);
+    state.rules = await getRules();
+    if (member) {
+      state.member = member;
+      state.cards  = await getCards(member.id);
+      state.errors = {};
+      // Si on vient d'un QR produit → aller directement au QR screen
+      if (PRODUCT_FROM_QR) {
+        const rule = state.rules.find(r => r.nom.toLowerCase().includes(PRODUCT_FROM_QR) || (PRODUCT_FROM_QR==='ecig' && r.nom.toLowerCase().includes('cig')));
+        if (rule) { renderQRScreen(rule.id); return; }
+      }
+      renderHome();
+    } else {
+      state.errors = {};
+      renderRegister();
+    }
+  } catch(e) { state.errors={phone:'Erreur réseau — réessayez'}; renderPhone(); }
+}
+
+async function doRegister() {
+  const {form} = state; const errs = {};
+  if (!form.prenom.trim()) errs.prenom='Prénom requis';
+  if (!form.nom.trim())    errs.nom='Nom requis';
+  if (form.dob) { const age=(Date.now()-new Date(form.dob))/(365.25*24*3600*1000); if(age<16||age>120) errs.dob='Date invalide'; }
+  if (form.email && !/^[^@]+@[^@]+\.[^@]+$/.test(form.email)) errs.email='Email invalide';
+  if (!form.rgpd) errs.rgpd='Vous devez accepter pour continuer';
+  if (Object.keys(errs).length) { state.errors=errs; renderRegister(); return; }
+  renderLoading();
+  try {
+    const m = await createMember({
+      nom:form.prenom.trim()+' '+form.nom.trim().toUpperCase(),
+      telephone:clean(state.phone), email:form.email||null,
+      date_naissance:form.dob||null, rgpd_accepte_le:new Date().toISOString()
+    });
+    state.member=m; state.cards={};
+    renderWelcome();
+  } catch(e) { state.errors={prenom:"Erreur d'inscription — réessayez"}; renderRegister(); }
+}
+
+async function doSelectProd(ruleId) {
+  state.selRuleId = ruleId;
+  renderLoading();
+  try {
+    const obj = await generateCode(state.member.id, ruleId);
+    state.codeId = obj.id;
+    state.codeVal = obj.code;
+    state.codeExpiresAt = obj.expiresAt;
+    state.screen = 'code';
+    renderQRScreen(ruleId);
+    if (codeTimer) clearInterval(codeTimer);
+    codeTimer = setInterval(async () => {
+      const left = Math.max(0, Math.ceil((state.codeExpiresAt - Date.now()) / 1000));
+      if (left <= 0) { clearInterval(codeTimer); renderQRScreen(ruleId); return; }
+      const used = await pollCodeUsed(state.codeId);
+      if (used) {
+        clearInterval(codeTimer);
+        await addStamp(state.member.id, ruleId);
+        state.screen = 'confirm';
+        renderConfirm(ruleId);
+      }
+    }, 2000);
+  } catch(e) {
+    state.screen = 'select';
+    renderSelect();
+  }
+}
+
+function doLogout() {
+  if (codeTimer) clearInterval(codeTimer);
+  state = {screen:'phone',phone:'',member:null,rules:[],cards:{},selRuleId:null,codeId:null,codeVal:null,codeExpiresAt:null,confirmedCount:0,isComplete:false,errors:{},form:{prenom:'',nom:'',dob:'',email:'',rgpd:false}};
+  renderPhone();
+}
+
+// ── SERVICE WORKER ──
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(()=>{}));
+}
+
+// ── INSTALL BANNER ──
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault(); deferredPrompt=e;
+  setTimeout(() => {
+    if (!deferredPrompt) return;
+    const banner = el('div', {class:'install-banner'},
+      el('span', {style:'font-size:26px'}, '📲'),
+      el('div', {style:'flex:1'},
+        el('div', {style:'font-size:13px;font-weight:600'}, 'Installer FidéliTab'),
+        el('div', {style:'font-size:12px;color:rgba(255,255,255,.7);margin-top:2px'}, 'Accès rapide depuis votre écran')
+      ),
+      el('button', {onclick:async()=>{ deferredPrompt.prompt(); const {outcome}=await deferredPrompt.userChoice; deferredPrompt=null; banner.remove(); }, style:'padding:8px 14px;border-radius:8px;border:none;background:#1D9E75;color:#fff;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit'}, 'Installer'),
+      el('button', {onclick:()=>banner.remove(), style:'padding:6px;border:none;background:transparent;color:rgba(255,255,255,.5);cursor:pointer;font-size:16px'}, '✕')
+    );
+    document.body.appendChild(banner);
+  }, 30000);
+});
+
+// ── INIT ──
+renderPhone();
+</script>
+</body>
+</htmlel('div', {class:'bottom-bar'},
+    el('div', {style:'background:#1e1b4b;border-radius:14px;padding:16px;text-align:center'},
+      el('div', {style:'font-size:11px;font-weight:600;color:rgba(255,255,255,.55);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px'}, 'Mon QR — montrez-le au caissier'),
+      el('div', {id:'homeQRCode', style:'display:flex;justify-content:center;margin-bottom:8px'}),
+      el('div', {style:'font-size:12px;color:rgba(255,255,255,.5);line-height:1.5'}, 'Le caissier scanne ce code → tampon ajouté automatiquement')
+    ),
+    el('button', {class:'btn btn-ghost', onclick:doLogout}, '← Se déconnecter')
+  ));
+  app.appendChild(s);
+  setTimeout(() => {
+    const pp = new URLSearchParams(window.location.search).get('p');
+    const rule = pp ? state.rules.find(r => r.nom.toLowerCase().includes(pp)) : state.rules[0];
+    const rid = rule ? rule.id : 1;
+    const url = 'https://bohmust.github.io/fidelitab/admin.html?scan=' + state.member.id + '&rule=' + rid;
+    const wrap = document.getElementById('homeQRCode');
+    if (wrap && window.QRCode) { wrap.innerHTML=''; new QRCode(wrap,{text:url,width:140,height:140,colorDark:'#1a1a1a',colorLight:'#ffffff'}); }
+  }, 150);
+}
+
+// ── SELECT PRODUCT ──
+function renderSelect() {
+  const app = $app(); app.innerHTML = '';
+  const s = el('div', {class:'screen'});
+  s.appendChild(header());
+  const content = el('div', {class:'content', style:'padding-top:20px'});
+  content.appendChild(el('div', {style:'font-size:11px;color:#6366f1;cursor:pointer;margin-bottom:10px', onclick:renderHome}, '← Retour à mes cartes'));
+  content.appendChild(el('div', {class:'title'}, "Qu'avez-vous acheté ?"));
+  content.appendChild(el('div', {class:'sub', style:'margin-bottom:14px'}, 'Sélectionnez pour générer votre code'));
+  state.rules.forEach(r => {
+    const count = state.cards[r.id]||0, full = count>=r.objectif, left = r.objectif-count;
+    const btn = el('button', {class:'prod-btn', onclick:()=>doSelectProd(r.id)},
+      el('span', {style:'font-size:24px'}, r.emoji),
+      el('div', {style:'flex:1'},
+        el('div', {style:'font-size:14px;font-weight:600'}, r.nom),
+        el('div', {style:'font-size:12px;color:var(--text2);margin-top:2px'}, full?'🎉 Récompense dispo !':left===1?'Encore 1 → '+r.recompense:left+' achats → '+r.recompense)
+      ),
+      el('div', {style:'background:'+(full?'#EEEDFE':'#f3f4f6')+';color:'+(full?'#3C3489':'var(--text2)')+';padding:3px 9px;border-radius:20px;font-size:11px;font-weight:600'}, full?'Offert':count+'/'+r.objectif)
+    );
+    content.appendChild(btn);
+  });
+  s.appendChild(content);
+  app.appendChild(s);
+}
+
+
+// ★ QR SCREEN — flux FaveCard : client montre son QR
+function renderQRScreen(ruleId) {
+  const r = state.rules.find(x=>x.id===ruleId);
+  if (!r) { renderHome(); return; }
+  const count = state.cards[r.id]||0, full = count>=r.objectif, left = r.objectif-count;
+  const app = $app(); app.innerHTML = '';
+  const s = el('div', {class:'qr-screen'});
+
+  // Header with product
+  const qhd = el('div', {class:'qr-header'},
+    el('div', {class:'qr-header-inner'},
+      el('span', {class:'qr-back', onclick:renderHome}, '← Mes cartes'),
+      el('div', {class:'qr-product-pill'},
+        el('span', {style:'font-size:18px'}, r.emoji),
+        el('div', null,
+          el('div', {class:'qr-product-name'}, r.nom),
+          el('div', {class:'qr-product-sub'}, full?'Récompense disponible !':left===1?'Encore 1 achat !':left+' achats → offert')
+        )
+      )
+    )
+  );
+  s.appendChild(qhd);
+
+  // QR body
+  const body = el('div', {class:'qr-body'});
+  body.appendChild(el('div', {class:'qr-instruction'}, 'Montrez ce QR code au caissier.\nIl le scanne avec son téléphone — tampon ajouté automatiquement.'));
+
+  const qrCard = el('div', {class:'qr-card'},
+    el('div', {class:'qr-label'}, 'Mon QR code personnel'),
+    el('div', {class:'qr-wrap', id:'clientQRWrap'}),
+    el('div', {class:'qr-name'}, state.member.nom),
+    el('div', {class:'qr-progress'}, count+'/'+r.objectif+' tampons '+r.nom)
+  );
+  body.appendChild(qrCard);
+
+  // Dots progress
+  const dots = el('div', {class:'dots-row', style:'margin-bottom:16px'});
+  for (let i=0; i<r.objectif; i++) dots.appendChild(el('div', {class:'dot '+(i<count?'on':'off')}, i<count?'✓':''));
+  body.appendChild(dots);
+
+  if (full) {
+    body.appendChild(el('div', {style:'background:#EEEDFE;color:#3C3489;border-radius:12px;padding:12px 16px;font-size:14px;font-weight:600;text-align:center;max-width:280px'},
+      '🎉 '+r.recompense
+    ));
+  }
+
+  s.appendChild(body);
+  app.appendChild(s);
+
+  // Generate QR — encode member ID + rule ID + timestamp
+  setTimeout(() => {
+    const adminUrl = `https://bohmust.github.io/fidelitab/admin.html?scan=${state.member.id}&rule=${ruleId}`;
+    makeQR('clientQRWrap', adminUrl, 160);
+    // Start polling for stamp validation
+    startPollingForStamp(ruleId);
+  }, 100);
+}
+
+// CONFIRM
+function renderConfirm(ruleId) {
+  const r = state.rules.find(x=>x.id===ruleId);
+  const count = state.confirmedCount, full = state.isComplete;
+  const app = $app(); app.innerHTML = '';
+  const s = el('div', {class:'screen', style:'position:relative'});
+  if (full) s.appendChild(confetti());
+  const dots = el('div', {class:'dots-row', style:'justify-content:center;margin-bottom:20px'});
+  for (let i=0; i<r.objectif; i++) dots.appendChild(el('div', {class:'dot '+(i<count?'on':'off')}, i<count?'✓':''));
+  s.appendChild(el('div', {class:'confirm'},
+    el('div', {class:'c-emoji'}, full?'🎉':r.emoji),
+    el('div', {class:'c-title', style:full?'color:#3C3489':''}, full?'Récompense débloquée !':'Tampon ajouté !'),
+    el('div', {class:'c-sub'}, full?`Carte ${r.nom} complète !\nMontrez cet écran en caisse.`:'+1 tampon enregistré sur votre carte '+r.nom+'.'),
+    full ? el('div', {class:'reward-box'}, r.recompense) : dots,
+    el('button', {class:'btn '+(full?'btn-purple':'btn-green'), style:'max-width:280px', onclick:renderHome}, 'Voir mes cartes →'),
+    el('button', {class:'btn btn-ghost', style:'margin-top:6px', onclick:doLogout}, 'Se déconnecter')
+  ));
+  s.appendChild(el('div', {class:'footer-txt'}, SHOP.name+' · Merci de votre visite 😊'));
+  app.appendChild(s);
+}
+
+// ── POLLING — attend que l'admin scanne et valide ──
+function startPollingForStamp(ruleId) {
+  if (codeTimer) clearInterval(codeTimer);
+  // Poll la table transactions pour voir si un tampon vient d'être ajouté
+  // L'admin scanne le QR client → côté admin le tampon est enregistré → le client voit la confirmation
+  let lastCount = state.cards[ruleId]||0;
+  codeTimer = setInterval(async () => {
+    try {
+      const fresh = await getCards(state.member.id);
+      const newCount = fresh[ruleId]||0;
+      if (newCount > lastCount) {
+        clearInterval(codeTimer);
+        state.cards = fresh;
+        state.confirmedCount = newCount;
+        state.isComplete = newCount >= (state.rules.find(r=>r.id===ruleId)?.objectif||99);
+        await refreshMember();
+        renderConfirm(ruleId);
+      }
+    } catch(e) {}
+  }, 2000);
+}
+
+async function refreshMember() {
+  const {data} = await sb.from('membres').select('points').eq('id',state.member.id).single();
+  if (data) state.member.points = data.points;
+}
+
+// ── ACTIONS ──
+async function doCheckPhone() {
+  const c = clean(state.phone);
+  if (c.length < 10) { state.errors={phone:'Entrez un numéro à 10 chiffres'}; renderPhone(); return; }
+  renderLoading();
+  try {
+    const member = await findMember(c);
+    state.rules = await getRules();
+    if (member) {
+      state.member = member;
+      state.cards  = await getCards(member.id);
+      state.errors = {};
+      // Si on vient d'un QR produit → aller directement au QR screen
+      if (PRODUCT_FROM_QR) {
+        const rule = state.rules.find(r => r.nom.toLowerCase().includes(PRODUCT_FROM_QR) || (PRODUCT_FROM_QR==='ecig' && r.nom.toLowerCase().includes('cig')));
+        if (rule) { renderQRScreen(rule.id); return; }
+      }
+      renderHome();
+    } else {
+      state.errors = {};
+      renderRegister();
+    }
+  } catch(e) { state.errors={phone:'Erreur réseau — réessayez'}; renderPhone(); }
+}
+
+async function doRegister() {
+  const {form} = state; const errs = {};
+  if (!form.prenom.trim()) errs.prenom='Prénom requis';
+  if (!form.nom.trim())    errs.nom='Nom requis';
+  if (form.dob) { const age=(Date.now()-new Date(form.dob))/(365.25*24*3600*1000); if(age<16||age>120) errs.dob='Date invalide'; }
+  if (form.email && !/^[^@]+@[^@]+\.[^@]+$/.test(form.email)) errs.email='Email invalide';
+  if (!form.rgpd) errs.rgpd='Vous devez accepter pour continuer';
+  if (Object.keys(errs).length) { state.errors=errs; renderRegister(); return; }
+  renderLoading();
+  try {
+    const m = await createMember({
+      nom:form.prenom.trim()+' '+form.nom.trim().toUpperCase(),
+      telephone:clean(state.phone), email:form.email||null,
+      date_naissance:form.dob||null, rgpd_accepte_le:new Date().toISOString()
+    });
+    state.member=m; state.cards={};
+    renderWelcome();
+  } catch(e) { state.errors={prenom:"Erreur d'inscription — réessayez"}; renderRegister(); }
+}
+
+async function doSelectProd(ruleId) {
+  state.selRuleId = ruleId;
+  renderLoading();
+  try {
+    const obj = await generateCode(state.member.id, ruleId);
+    state.codeId = obj.id;
+    state.codeVal = obj.code;
+    state.codeExpiresAt = obj.expiresAt;
+    state.screen = 'code';
+    renderQRScreen(ruleId);
+    if (codeTimer) clearInterval(codeTimer);
+    codeTimer = setInterval(async () => {
+      const left = Math.max(0, Math.ceil((state.codeExpiresAt - Date.now()) / 1000));
+      if (left <= 0) { clearInterval(codeTimer); renderQRScreen(ruleId); return; }
+      const used = await pollCodeUsed(state.codeId);
+      if (used) {
+        clearInterval(codeTimer);
+        await addStamp(state.member.id, ruleId);
+        state.screen = 'confirm';
+        renderConfirm(ruleId);
+      }
+    }, 2000);
+  } catch(e) {
+    state.screen = 'select';
+    renderSelect();
+  }
+}
+
+function doLogout() {
+  if (codeTimer) clearInterval(codeTimer);
+  state = {screen:'phone',phone:'',member:null,rules:[],cards:{},selRuleId:null,codeId:null,codeVal:null,codeExpiresAt:null,confirmedCount:0,isComplete:false,errors:{},form:{prenom:'',nom:'',dob:'',email:'',rgpd:false}};
+  renderPhone();
+}
+
+// ── SERVICE WORKER ──
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(()=>{}));
+}
+
+// ── INSTALL BANNER ──
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault(); deferredPrompt=e;
+  setTimeout(() => {
+    if (!deferredPrompt) return;
+    const banner = el('div', {class:'install-banner'},
+      el('span', {style:'font-size:26px'}, '📲'),
+      el('div', {style:'flex:1'},
+        el('div', {style:'font-size:13px;font-weight:600'}, 'Installer FidéliTab'),
+        el('div', {style:'font-size:12px;color:rgba(255,255,255,.7);margin-top:2px'}, 'Accès rapide depuis votre écran')
+      ),
+      el('button', {onclick:async()=>{ deferredPrompt.prompt(); const {outcome}=await deferredPrompt.userChoice; deferredPrompt=null; banner.remove(); }, style:'padding:8px 14px;border-radius:8px;border:none;background:#1D9E75;color:#fff;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit'}, 'Installer'),
+      el('button', {onclick:()=>banner.remove(), style:'padding:6px;border:none;background:transparent;color:rgba(255,255,255,.5);cursor:pointer;font-size:16px'}, '✕')
+    );
+    document.body.appendChild(banner);
+  }, 30000);
+});
+
+// ── INIT ──
+renderPhone();
+</script>
+</body>
+</html>

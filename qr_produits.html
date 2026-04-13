@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>FidéliTab — QR codes produits à imprimer</title>
+<style>
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f9fafb; padding: 32px; }
+  h1 { font-size: 22px; font-weight: 700; margin-bottom: 6px; }
+  .subtitle { font-size: 14px; color: #6b7280; margin-bottom: 32px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 20px; }
+  .card { background: #fff; border: 1px solid #e5e7eb; border-radius: 16px; padding: 24px; text-align: center; }
+  .emoji { font-size: 32px; margin-bottom: 10px; }
+  .name  { font-size: 16px; font-weight: 700; margin-bottom: 4px; }
+  .sub   { font-size: 13px; color: #6b7280; margin-bottom: 16px; }
+  .qr-wrap { display: flex; justify-content: center; margin-bottom: 14px; }
+  .url   { font-size: 11px; color: #9ca3af; word-break: break-all; }
+  .print-btn { margin-top: 32px; padding: 12px 24px; background: #3C3489; color: #fff; border: none; border-radius: 10px; font-size: 15px; font-weight: 600; cursor: pointer; font-family: inherit; }
+  @media print {
+    body { background: #fff; padding: 16px; }
+    .print-btn, h1, .subtitle { display: none; }
+    .grid { grid-template-columns: repeat(2, 1fr); gap: 16px; }
+    .card { break-inside: avoid; border: 1px solid #ccc; }
+  }
+</style>
+</head>
+<body>
+<h1>🏷️ QR codes produits — À imprimer et afficher en caisse</h1>
+<p class="subtitle">Chaque QR code correspond à un produit. Le client le scanne, sa carte s'ouvre directement avec le bon produit sélectionné.</p>
+<div class="grid" id="qrGrid"></div>
+<button class="print-btn" onclick="window.print()">🖨️ Imprimer les QR codes</button>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script>
+// ============================================================
+// ⚙️  Remplacez par votre URL Netlify
+// ============================================================
+const BASE_URL = 'https://bohmust.github.io/fidelitab';
+// ============================================================
+
+const PRODUCTS = [
+  { emoji:'🚬', name:'Tabac',  sub:'10 achats → 1 paquet offert',  slug:'tabac',  color:'#FAEEDA' },
+  { emoji:'☕',  name:'Café',   sub:'5 achats → 1 café offert',      slug:'cafe',   color:'#FEF3C7' },
+  { emoji:'📰',  name:'Presse', sub:'8 achats → 1 journal offert',   slug:'presse', color:'#F0FDF4' },
+  { emoji:'💨',  name:'E-cig',  sub:'6 achats → 1 recharge offerte', slug:'ecig',   color:'#EDE9FE' },
+];
+
+const grid = document.getElementById('qrGrid');
+PRODUCTS.forEach(p => {
+  const url = `${BASE_URL}/?p=${p.slug}`;
+  const card = document.createElement('div');
+  card.className = 'card';
+  card.style.borderTop = `4px solid ${p.color}`;
+  card.innerHTML = `
+    <div class="emoji">${p.emoji}</div>
+    <div class="name">${p.name}</div>
+    <div class="sub">${p.sub}</div>
+    <div class="qr-wrap" id="qr_${p.slug}"></div>
+    <div class="url">${url}</div>`;
+  grid.appendChild(card);
+  setTimeout(() => {
+    new QRCode(document.getElementById('qr_'+p.slug), {
+      text: url, width: 140, height: 140,
+      colorDark: '#111', colorLight: '#ffffff'
+    });
+  }, 100);
+});
+</script>
+</body>
+</html>
