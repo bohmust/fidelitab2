@@ -106,6 +106,7 @@ const SHOP = { name: 'Tabac Presse Grandclément', addr: 'Place Grandclément, V
 
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 const CODE_EXPIRE_SECONDS = 120;
+const PRODUCT_FROM_QR = new URLSearchParams(window.location.search).get('p');
 
 let state = {
   screen: 'phone', phone: '', member: null,
@@ -128,7 +129,7 @@ async function generateCode(memberId, ruleId){
   const code = (Math.floor(Math.random()*9000)+1000).toString();
   const expireAt = new Date(Date.now()+CODE_EXPIRE_SECONDS*1000);
   const {data,error} = await sb.from('codes_validation').insert([{
-    code, membre_id: memberId, regle_id: ruleId,
+    code, membre_id: memberId,
     expire_le: expireAt.toISOString(), utilise: false
   }]).select().single();
   if(error) throw error;
@@ -211,6 +212,7 @@ function renderRegister(){
   const mkF=(type,ph,key,lbl,hint)=>el('div',{class:'field'},
     el('label',null,lbl,errors[key]?null:(hint?el('span',null,hint):null)),
     el('input',{class:'inp'+(errors[key]?' err-field':''),type,placeholder:ph,value:form[key]||'',
+      ...(type==='date'?{max:new Date().toISOString().split('T')[0]}:{}),
       oninput:e=>{state.form[key]=e.target.value;}}),
     errors[key]?el('div',{class:'err'},errors[key]):null
   );
@@ -242,7 +244,7 @@ function renderHome(){
   const uH=el('div',{class:'user-hd'},
     el('div',{class:'user-row'},
       el('div',{class:'uav'},state.member.nom[0]),
-      el('div',null,el('div',{class:'uname'},'Bonjour '+(state.member.nom.split(' ')[0])+'  !'),el('div',{class:'upts'},(state.member.points||0).toLocaleString('fr-FR')+' points'))
+      el('div',null,el('div',{class:'uname'},'Bonjour '+(state.member.nom.split(' ')[0])+' !'),el('div',{class:'upts'},(state.member.points||0).toLocaleString('fr-FR')+' points'))
     ),
     ready.length?el('div',{class:'rbanner'},'🎉 '+(ready.length)+' récompense(s) disponible(s) — demandez en caisse !'):null
   );
@@ -376,7 +378,15 @@ async function doCheckPhone(){
   try{
     const member=await findMember(c);
     state.rules=await getRules();
-    if(member){state.member=member;state.cards=await getCards(member.id);state.errors={};state.screen='home';renderHome();}
+    if(member){
+      state.member=member;state.cards=await getCards(member.id);state.errors={};
+      if(PRODUCT_FROM_QR){
+        const rule=state.rules.find(r=>r.nom.toLowerCase().includes(PRODUCT_FROM_QR)||
+          (PRODUCT_FROM_QR==='ecig'&&r.nom.toLowerCase().includes('cig')));
+        if(rule){state.selRuleId=rule.id;state.screen='select';renderSelect();return;}
+      }
+      state.screen='home';renderHome();
+    }
     else{state.errors={};state.screen='register';renderRegister();}
   }catch(e){state.errors={phone:'Erreur réseau — réessayez'};renderPhone();}
 }
@@ -392,7 +402,9 @@ async function doRegister(){
   renderLoading();
   try{
     const m=await createMember({nom:form.prenom.trim()+' '+form.nom.trim().toUpperCase(),telephone:clean(state.phone),email:form.email||null,date_naissance:form.dob||null,rgpd_accepte_le:new Date().toISOString()});
-    state.member=m;state.cards={};state.screen='welcome';renderWelcome();
+    state.member=m;state.cards={};
+    state.rules=await getRules();
+    state.screen='welcome';renderWelcome();
   }catch(e){state.errors={prenom:"Erreur d'inscription — réessayez"};renderRegister();}
 }
 
