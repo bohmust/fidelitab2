@@ -632,13 +632,27 @@ function scanTick() {
     ctx.drawImage(video, 0, 0);
     const img  = ctx.getImageData(0, 0, canvas.width, canvas.height);
     const code = window.jsQR(img.data, img.width, img.height, {inversionAttempts:'dontInvert'});
-    if (code?.data?.startsWith('FIDELITAB_')) {
-      const parts = code.data.split('_');
-      const memberId = parts[1];
-      const ruleId   = parts[2] ? parseInt(parts[2]) : null;
-      stopScan();
-      processScannedMember(memberId, ruleId);
-      return;
+    if (code?.data) {
+      let memberId = null, ruleId = null;
+      // Format 1 : URL admin.html?scan=UUID&rule=N  (généré par client.html)
+      if (code.data.includes('scan=')) {
+        try {
+          const u = new URL(code.data);
+          memberId = u.searchParams.get('scan');
+          ruleId   = u.searchParams.get('rule') ? parseInt(u.searchParams.get('rule')) : null;
+        } catch(e) {}
+      }
+      // Format 2 : FIDELITAB_UUID_ruleId  (format legacy)
+      else if (code.data.startsWith('FIDELITAB_')) {
+        const parts = code.data.split('_');
+        memberId = parts[1];
+        ruleId   = parts[2] ? parseInt(parts[2]) : null;
+      }
+      if (memberId) {
+        stopScan();
+        processScannedMember(memberId, ruleId);
+        return;
+      }
     }
   }
   scanRaf = requestAnimationFrame(scanTick);
