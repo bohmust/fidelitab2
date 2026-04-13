@@ -3,71 +3,423 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>FidéliTab — Ma Carte</title>
+<title>FidéliTab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-:root{--purple:#3C3489;--green:#1D9E75;--green-l:#E1F5EE;--red:#D85A30;--text:#111;--text2:#6b7280;--border:#e5e7eb;--bg:#f9fafb}
-html,body{height:100%;background:var(--bg);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:var(--text)}
-#app{max-width:430px;margin:0 auto;min-height:100vh;background:#fff;display:flex;flex-direction:column}
-.screen{display:flex;flex-direction:column;flex:1;animation:fadeUp .2s ease}
-@keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
-.header{background:var(--purple);padding:18px 20px 16px;display:flex;align-items:center;gap:10px}
-.h-name{font-size:13px;font-weight:600;color:#fff}
-.h-addr{font-size:11px;color:rgba(255,255,255,.6);margin-top:1px}
-.user-hd{background:var(--purple);padding:18px 20px 16px}
-.uav{width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:17px;flex-shrink:0}
-.uname{font-size:16px;font-weight:600;color:#fff}
-.upts{font-size:13px;color:rgba(255,255,255,.7);margin-top:2px}
-.rbanner{background:rgba(255,255,255,.15);border-radius:10px;padding:10px 14px;margin-top:12px;font-size:13px;color:#fff;font-weight:500}
-.content{flex:1;padding:24px 20px;display:flex;flex-direction:column;gap:16px;overflow-y:auto}
-.title{font-size:21px;font-weight:700}
-.sub{font-size:14px;color:var(--text2);line-height:1.6;margin-top:4px}
-.field{display:flex;flex-direction:column;gap:6px}
-.field label{font-size:13px;font-weight:600;display:flex;justify-content:space-between}
-.field label span{font-size:11px;color:var(--text2);font-weight:400}
-.inp{width:100%;padding:14px 16px;border:1.5px solid var(--border);border-radius:12px;font-size:16px;font-family:inherit;background:#fff;color:var(--text);-webkit-appearance:none}
-.inp:focus{outline:none;border-color:var(--purple)}
-.inp-phone{text-align:center;letter-spacing:3px;font-size:22px;font-weight:600}
-.err-msg{font-size:13px;color:var(--red)}
-.badge{display:inline-block;background:var(--green-l);color:#065f46;font-size:12px;font-weight:600;padding:3px 10px;border-radius:20px;margin-bottom:10px}
-.rgpd-box{background:#f8f9ff;border:1px solid #e0deff;border-radius:12px;padding:14px}
-.rgpd-title{font-size:13px;font-weight:600;margin-bottom:6px}
-.rgpd-text{font-size:12px;color:var(--text2);line-height:1.6;margin-bottom:10px}
-.rgpd-check{display:flex;align-items:flex-start;gap:10px;cursor:pointer}
-.rgpd-check input{margin-top:2px;width:17px;height:17px;flex-shrink:0;accent-color:var(--purple)}
-.rgpd-check span{font-size:13px;line-height:1.5}
-.btn{width:100%;padding:16px;border-radius:14px;border:none;font-size:16px;font-weight:600;cursor:pointer;font-family:inherit}
-.btn-purple{background:var(--purple);color:#fff}
-.btn-green{background:var(--green);color:#fff}
-.btn-ghost{background:transparent;color:var(--text2);font-size:13px}
-.cards-wrap{flex:1;padding:14px 20px;overflow-y:auto}
-.sec-lbl{font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px}
-.stamp-card{background:#fff;border:1px solid var(--border);border-radius:14px;padding:14px;margin-bottom:10px}
-.stamp-card.full{background:#EEEDFE;border-color:#c4c0f0}
-.dots-row{display:flex;gap:4px;flex-wrap:wrap}
-.dot{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700}
-.dot.on{background:var(--green-l);border:2px solid var(--green);color:var(--green)}
-.dot.off{background:#f3f4f6;border:1.5px dashed #d1d5db}
-.pbar{height:3px;background:#f3f4f6;border-radius:2px;overflow:hidden;margin-top:8px}
-.pbar-fill{height:100%;background:var(--green);border-radius:2px}
-.bottom-bar{padding:0 20px 24px;display:flex;flex-direction:column;gap:10px}
-.qr-box{background:#1e1b4b;border-radius:14px;padding:16px;text-align:center}
-.qr-label{font-size:11px;font-weight:600;color:rgba(255,255,255,.55);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px}
-.qr-hint{font-size:12px;color:rgba(255,255,255,.5);line-height:1.5;margin-top:8px}
-.confirm{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:36px 24px;text-align:center;position:relative}
-.c-emoji{font-size:64px;margin-bottom:16px;animation:pop .4s cubic-bezier(.34,1.56,.64,1)}
-@keyframes pop{from{transform:scale(.3);opacity:0}60%{transform:scale(1.15)}to{transform:scale(1);opacity:1}}
-.c-title{font-size:22px;font-weight:700;margin-bottom:8px}
-.c-sub{font-size:14px;color:var(--text2);line-height:1.7;margin-bottom:24px}
-.reward-box{background:#EEEDFE;border-radius:14px;padding:14px 20px;margin-bottom:24px;font-size:15px;font-weight:600;color:#3C3489;width:100%}
-.loading{flex:1;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:14px;color:var(--text2);font-size:14px}
-.spinner{width:30px;height:30px;border:3px solid #e5e7eb;border-top-color:var(--purple);border-radius:50%;animation:spin .7s linear infinite}
+:root{
+  --ink:#0D0D14;
+  --ink2:#5A5A72;
+  --ink3:#9898B0;
+  --gold:#C9922A;
+  --gold-l:#FFF8EC;
+  --gold-d:#8A6018;
+  --jade:#1A7A5E;
+  --jade-l:#E8F5F1;
+  --rose:#C94040;
+  --rose-l:#FDF0F0;
+  --surface:#FAFAF8;
+  --card:#FFFFFF;
+  --border:#EBEBEB;
+  --border2:#F0F0EE;
+  --radius:20px;
+  --shadow:0 2px 16px rgba(13,13,20,.08);
+  --shadow-lg:0 8px 40px rgba(13,13,20,.14);
+}
+html,body{height:100%;background:var(--surface);font-family:'DM Sans',sans-serif;color:var(--ink);-webkit-font-smoothing:antialiased}
+#app{max-width:430px;margin:0 auto;min-height:100vh;background:var(--surface);display:flex;flex-direction:column;position:relative;overflow:hidden}
+
+/* ── ANIMATIONS ── */
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes scaleIn{from{opacity:0;transform:scale(.85)}to{opacity:1;transform:scale(1)}}
+@keyframes stampPop{0%{transform:scale(0) rotate(-15deg);opacity:0}60%{transform:scale(1.2) rotate(5deg)}100%{transform:scale(1) rotate(0);opacity:1}}
+@keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
 @keyframes spin{to{transform:rotate(360deg)}}
-.info-box{background:var(--bg);border-radius:12px;padding:12px 14px;font-size:12px;color:var(--text2);line-height:1.6;display:flex;gap:8px}
-.footer-txt{padding:14px 20px;text-align:center;font-size:12px;color:var(--text2);border-top:1px solid var(--border)}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+@keyframes confettiFall{0%{transform:translateY(-10px) rotate(0deg);opacity:1}100%{transform:translateY(80px) rotate(360deg);opacity:0}}
+
+.screen{display:flex;flex-direction:column;flex:1;animation:fadeUp .3s ease both}
+
+/* ── HEADER ── */
+.shop-header{
+  background:var(--ink);
+  padding:20px 22px 18px;
+  display:flex;align-items:center;gap:12px;
+  position:relative;overflow:hidden;
+}
+.shop-header::before{
+  content:'';position:absolute;top:-30px;right:-20px;
+  width:120px;height:120px;border-radius:50%;
+  background:radial-gradient(circle,rgba(201,146,42,.25) 0%,transparent 70%);
+}
+.shop-logo{
+  width:38px;height:38px;border-radius:10px;
+  background:linear-gradient(135deg,var(--gold) 0%,#E8B450 100%);
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Fraunces',serif;font-size:18px;font-weight:700;color:var(--ink);
+  flex-shrink:0;box-shadow:0 2px 10px rgba(201,146,42,.4);
+}
+.shop-name{font-size:13px;font-weight:600;color:#fff;letter-spacing:.02em}
+.shop-addr{font-size:11px;color:rgba(255,255,255,.45);margin-top:1px}
+
+/* ── USER HEADER ── */
+.user-header{
+  background:var(--ink);
+  padding:0 22px 24px;
+}
+.user-card{
+  background:linear-gradient(135deg,#1A1A2E 0%,#252540 100%);
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:18px;padding:18px 20px;
+  position:relative;overflow:hidden;
+}
+.user-card::before{
+  content:'';position:absolute;top:-40px;right:-30px;
+  width:160px;height:160px;border-radius:50%;
+  background:radial-gradient(circle,rgba(201,146,42,.15) 0%,transparent 65%);
+}
+.user-row{display:flex;align-items:center;gap:12px;margin-bottom:16px}
+.user-av{
+  width:44px;height:44px;border-radius:14px;
+  background:linear-gradient(135deg,var(--gold) 0%,#E8B450 100%);
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Fraunces',serif;font-weight:700;font-size:18px;color:var(--ink);
+  flex-shrink:0;
+}
+.user-name{font-family:'Fraunces',serif;font-size:18px;font-weight:600;color:#fff;letter-spacing:-.01em}
+.user-sub{font-size:12px;color:rgba(255,255,255,.45);margin-top:2px}
+.points-row{display:flex;align-items:baseline;gap:6px}
+.points-num{font-family:'Fraunces',serif;font-size:32px;font-weight:700;color:var(--gold);line-height:1}
+.points-label{font-size:13px;color:rgba(255,255,255,.4)}
+.level-badge{
+  margin-left:auto;padding:4px 10px;border-radius:20px;
+  background:rgba(201,146,42,.15);border:1px solid rgba(201,146,42,.3);
+  font-size:11px;font-weight:600;color:var(--gold);
+  white-space:nowrap;align-self:flex-end;
+}
+.reward-banner{
+  background:linear-gradient(90deg,rgba(201,146,42,.2) 0%,rgba(201,146,42,.08) 100%);
+  border:1px solid rgba(201,146,42,.25);
+  border-radius:10px;padding:10px 12px;margin-top:12px;
+  font-size:12px;font-weight:500;color:rgba(255,255,255,.85);
+  display:flex;align-items:center;gap:8px;
+}
+
+/* ── CONTENT / CARDS ── */
+.cards-section{flex:1;padding:20px 18px;overflow-y:auto}
+.section-title{
+  font-family:'Fraunces',serif;font-size:13px;font-weight:600;
+  color:var(--ink2);text-transform:uppercase;letter-spacing:.08em;
+  margin-bottom:14px;
+}
+.stamp-card{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:18px;
+  padding:18px;
+  margin-bottom:12px;
+  box-shadow:var(--shadow);
+  transition:transform .15s ease,box-shadow .15s ease;
+  animation:fadeUp .35s ease both;
+}
+.stamp-card:active{transform:scale(.98)}
+.stamp-card.full{
+  background:linear-gradient(135deg,#FFFBF2 0%,#FFF5E0 100%);
+  border-color:rgba(201,146,42,.3);
+  box-shadow:0 4px 20px rgba(201,146,42,.12);
+}
+.card-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.card-left{display:flex;align-items:center;gap:10px}
+.card-emoji{
+  width:40px;height:40px;border-radius:12px;
+  background:var(--surface);
+  display:flex;align-items:center;justify-content:center;
+  font-size:20px;flex-shrink:0;
+}
+.stamp-card.full .card-emoji{background:rgba(201,146,42,.12)}
+.card-name{font-family:'Fraunces',serif;font-size:15px;font-weight:600;letter-spacing:-.01em}
+.card-sub{font-size:12px;color:var(--ink2);margin-top:1px}
+.card-count{
+  font-family:'Fraunces',serif;font-size:16px;font-weight:700;
+  color:var(--ink2);
+}
+.stamp-card.full .card-count{color:var(--gold-d)}
+.dots{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.dot{
+  width:26px;height:26px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:700;
+  transition:all .2s ease;
+}
+.dot.off{
+  background:var(--surface);
+  border:1.5px dashed var(--border);
+  color:transparent;
+}
+.dot.on{
+  background:linear-gradient(135deg,var(--jade) 0%,#228C6E 100%);
+  border:none;color:#fff;
+  box-shadow:0 2px 6px rgba(26,122,94,.3);
+}
+.dot.on.new-dot{animation:stampPop .4s cubic-bezier(.34,1.56,.64,1) both}
+.stamp-card.full .dot.on{
+  background:linear-gradient(135deg,var(--gold) 0%,#E8B450 100%);
+  box-shadow:0 2px 6px rgba(201,146,42,.35);
+}
+.progress-bar{height:3px;background:var(--border2);border-radius:2px;overflow:hidden}
+.progress-fill{height:100%;border-radius:2px;background:linear-gradient(90deg,var(--jade) 0%,#33C99A 100%);transition:width .5s ease}
+.stamp-card.full .progress-fill{background:linear-gradient(90deg,var(--gold) 0%,#E8B450 100%)}
+.full-tag{
+  display:flex;align-items:center;gap:6px;
+  background:rgba(201,146,42,.1);border-radius:8px;
+  padding:7px 10px;margin-top:10px;
+  font-size:12px;font-weight:600;color:var(--gold-d);
+}
+
+/* ── QR SECTION ── */
+.qr-section{padding:0 18px 24px}
+.qr-card{
+  background:var(--ink);
+  border-radius:22px;
+  padding:22px;
+  text-align:center;
+  position:relative;overflow:hidden;
+  box-shadow:0 8px 32px rgba(13,13,20,.2);
+}
+.qr-card::before{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse at 80% 20%,rgba(201,146,42,.12) 0%,transparent 55%),
+             radial-gradient(ellipse at 20% 80%,rgba(26,122,94,.1) 0%,transparent 55%);
+}
+.qr-eyebrow{
+  font-size:10px;font-weight:600;
+  color:rgba(255,255,255,.35);
+  text-transform:uppercase;letter-spacing:.1em;
+  margin-bottom:14px;position:relative;
+}
+.qr-wrap{
+  display:flex;justify-content:center;margin-bottom:14px;position:relative;
+}
+.qr-inner{
+  background:#fff;border-radius:14px;
+  padding:10px;
+  box-shadow:0 4px 20px rgba(0,0,0,.3);
+  display:inline-block;
+}
+.qr-name{
+  font-family:'Fraunces',serif;font-size:16px;font-weight:600;
+  color:#fff;margin-bottom:4px;position:relative;
+}
+.qr-hint{
+  font-size:11px;color:rgba(255,255,255,.35);
+  line-height:1.5;position:relative;
+}
+
+/* ── BOTTOM BAR ── */
+.bottom-bar{padding:0 18px 28px;padding-bottom:max(28px,env(safe-area-inset-bottom))}
+.btn-logout{
+  width:100%;padding:14px;border-radius:14px;
+  border:1px solid var(--border);background:transparent;
+  font-family:'DM Sans',sans-serif;font-size:14px;
+  font-weight:500;color:var(--ink2);cursor:pointer;
+}
+
+/* ── PHONE SCREEN ── */
+.phone-screen{
+  flex:1;display:flex;flex-direction:column;
+}
+.phone-hero{
+  background:var(--ink);
+  padding:40px 28px 36px;
+  display:flex;flex-direction:column;align-items:center;
+  text-align:center;position:relative;overflow:hidden;
+}
+.phone-hero::before{
+  content:'';position:absolute;
+  width:300px;height:300px;border-radius:50%;
+  background:radial-gradient(circle,rgba(201,146,42,.12) 0%,transparent 65%);
+  top:-80px;left:50%;transform:translateX(-50%);
+}
+.hero-logo{
+  width:64px;height:64px;border-radius:18px;
+  background:linear-gradient(135deg,var(--gold) 0%,#E8B450 100%);
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Fraunces',serif;font-size:30px;font-weight:700;color:var(--ink);
+  margin-bottom:20px;box-shadow:0 4px 20px rgba(201,146,42,.4);
+  animation:float 3s ease-in-out infinite;
+}
+.hero-title{
+  font-family:'Fraunces',serif;font-size:26px;font-weight:700;
+  color:#fff;line-height:1.2;margin-bottom:8px;letter-spacing:-.02em;
+}
+.hero-title em{color:var(--gold);font-style:normal}
+.hero-sub{font-size:14px;color:rgba(255,255,255,.45);line-height:1.6;margin-bottom:0}
+.phone-body{flex:1;padding:28px 22px}
+.phone-label{
+  font-size:12px;font-weight:600;color:var(--ink2);
+  letter-spacing:.06em;text-transform:uppercase;margin-bottom:10px;
+}
+.phone-input-wrap{position:relative;margin-bottom:16px}
+.phone-input{
+  width:100%;padding:18px 20px;
+  border:2px solid var(--border);border-radius:16px;
+  background:var(--card);
+  font-family:'DM Sans',sans-serif;font-size:22px;font-weight:600;
+  color:var(--ink);text-align:center;letter-spacing:4px;
+  -webkit-appearance:none;
+  transition:border-color .2s ease,box-shadow .2s ease;
+}
+.phone-input:focus{
+  outline:none;border-color:var(--gold);
+  box-shadow:0 0 0 4px rgba(201,146,42,.1);
+}
+.phone-input::placeholder{font-size:16px;letter-spacing:2px;color:var(--ink3)}
+.err-chip{
+  background:var(--rose-l);border:1px solid rgba(201,64,64,.15);
+  border-radius:10px;padding:10px 14px;
+  font-size:13px;color:var(--rose);font-weight:500;
+  text-align:center;margin-bottom:14px;
+}
+.btn-primary{
+  width:100%;padding:17px;border-radius:16px;border:none;
+  background:linear-gradient(135deg,var(--ink) 0%,#252545 100%);
+  font-family:'DM Sans',sans-serif;font-size:16px;font-weight:600;
+  color:#fff;cursor:pointer;letter-spacing:.01em;
+  box-shadow:0 4px 20px rgba(13,13,20,.2);
+  transition:transform .15s ease,box-shadow .15s ease;
+  position:relative;overflow:hidden;
+}
+.btn-primary::after{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg,rgba(201,146,42,.2) 0%,transparent 50%);
+}
+.btn-primary:active{transform:scale(.98)}
+.security-note{
+  display:flex;align-items:center;gap:8px;
+  font-size:12px;color:var(--ink3);margin-top:16px;
+  justify-content:center;
+}
+
+/* ── REGISTER SCREEN ── */
+.reg-header{
+  background:var(--ink);padding:24px 22px 20px;
+}
+.reg-back{
+  font-size:13px;color:rgba(255,255,255,.45);cursor:pointer;
+  margin-bottom:12px;display:inline-block;
+}
+.reg-title{font-family:'Fraunces',serif;font-size:22px;font-weight:700;color:#fff;letter-spacing:-.01em}
+.reg-subtitle{font-size:13px;color:rgba(255,255,255,.45);margin-top:4px}
+.reg-body{flex:1;padding:22px;overflow-y:auto}
+.field{margin-bottom:16px}
+.field-label{
+  font-size:12px;font-weight:600;color:var(--ink2);
+  text-transform:uppercase;letter-spacing:.06em;
+  margin-bottom:7px;display:flex;justify-content:space-between;align-items:center;
+}
+.field-label span{font-size:11px;color:var(--ink3);text-transform:none;letter-spacing:0;font-weight:400}
+.inp{
+  width:100%;padding:14px 16px;
+  border:1.5px solid var(--border);border-radius:12px;
+  background:var(--card);font-family:'DM Sans',sans-serif;
+  font-size:15px;color:var(--ink);-webkit-appearance:none;
+  transition:border-color .2s ease,box-shadow .2s ease;
+}
+.inp:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 3px rgba(201,146,42,.1)}
+.inp.err{border-color:var(--rose)}
+.err-txt{font-size:12px;color:var(--rose);margin-top:5px}
+.rgpd-wrap{
+  background:var(--gold-l);border:1px solid rgba(201,146,42,.2);
+  border-radius:14px;padding:16px;margin-bottom:20px;
+}
+.rgpd-title{font-size:13px;font-weight:600;color:var(--ink);margin-bottom:6px}
+.rgpd-text{font-size:12px;color:var(--ink2);line-height:1.6;margin-bottom:12px}
+.rgpd-check{display:flex;align-items:flex-start;gap:10px;cursor:pointer}
+.rgpd-check input{width:17px;height:17px;margin-top:1px;flex-shrink:0;accent-color:var(--gold)}
+.rgpd-check label{font-size:13px;line-height:1.5;color:var(--ink);cursor:pointer}
+.btn-register{
+  width:100%;padding:17px;border-radius:16px;border:none;
+  background:linear-gradient(135deg,var(--jade) 0%,#228C6E 100%);
+  font-family:'DM Sans',sans-serif;font-size:16px;font-weight:600;
+  color:#fff;cursor:pointer;margin-bottom:12px;
+  box-shadow:0 4px 16px rgba(26,122,94,.3);
+  transition:transform .15s ease;
+}
+.btn-register:active{transform:scale(.98)}
+.btn-back{
+  width:100%;padding:14px;border-radius:14px;
+  border:1.5px solid var(--border);background:transparent;
+  font-family:'DM Sans',sans-serif;font-size:14px;
+  color:var(--ink2);cursor:pointer;
+}
+
+/* ── LOADING ── */
+.loading{
+  flex:1;display:flex;align-items:center;justify-content:center;
+  flex-direction:column;gap:16px;
+}
+.spinner{
+  width:32px;height:32px;
+  border:2.5px solid var(--border);
+  border-top-color:var(--gold);
+  border-radius:50%;
+  animation:spin .8s linear infinite;
+}
+.loading-text{font-size:14px;color:var(--ink2)}
+
+/* ── WELCOME ── */
+.welcome{
+  flex:1;display:flex;flex-direction:column;align-items:center;
+  justify-content:center;padding:36px 24px;text-align:center;
+  position:relative;overflow:hidden;
+  background:radial-gradient(ellipse at 50% 0%,rgba(201,146,42,.06) 0%,transparent 60%);
+}
+.welcome-icon{font-size:72px;margin-bottom:20px;animation:scaleIn .5s cubic-bezier(.34,1.56,.64,1)}
+.welcome-title{font-family:'Fraunces',serif;font-size:26px;font-weight:700;letter-spacing:-.02em;margin-bottom:10px}
+.welcome-sub{font-size:14px;color:var(--ink2);line-height:1.7;margin-bottom:28px;max-width:280px}
+.products-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%;margin-bottom:28px}
+.product-item{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:14px;padding:14px;text-align:center;
+}
+.product-item .emoji{font-size:24px;margin-bottom:6px}
+.product-item .pname{font-size:13px;font-weight:600}
+.product-item .psub{font-size:11px;color:var(--ink2);margin-top:2px}
+.btn-continue{
+  width:100%;max-width:280px;padding:16px;border-radius:16px;border:none;
+  background:var(--ink);font-family:'DM Sans',sans-serif;
+  font-size:15px;font-weight:600;color:#fff;cursor:pointer;
+}
+
+/* ── CONFIRM ── */
+.confirm-screen{
+  flex:1;display:flex;flex-direction:column;align-items:center;
+  justify-content:center;padding:36px 24px;text-align:center;
+  position:relative;overflow:hidden;
+}
+.confirm-emoji{font-size:72px;margin-bottom:16px;animation:scaleIn .5s cubic-bezier(.34,1.56,.64,1) both}
+.confirm-title{font-family:'Fraunces',serif;font-size:24px;font-weight:700;letter-spacing:-.02em;margin-bottom:8px}
+.confirm-sub{font-size:14px;color:var(--ink2);line-height:1.7;margin-bottom:20px}
+.confirm-dots{display:flex;justify-content:center;gap:6px;flex-wrap:wrap;margin-bottom:20px}
+.reward-box{
+  background:linear-gradient(135deg,var(--gold-l) 0%,#FFF0CC 100%);
+  border:1px solid rgba(201,146,42,.25);
+  border-radius:16px;padding:16px 20px;
+  font-family:'Fraunces',serif;font-size:16px;font-weight:600;
+  color:var(--gold-d);margin-bottom:24px;width:100%;
+}
+.btn-home{
+  width:100%;max-width:280px;padding:16px;border-radius:16px;border:none;
+  background:var(--ink);font-family:'DM Sans',sans-serif;
+  font-size:15px;font-weight:600;color:#fff;cursor:pointer;margin-bottom:10px;
+}
+
+/* ── CONFETTI ── */
 .confetti-wrap{position:absolute;top:0;left:0;right:0;bottom:0;pointer-events:none;overflow:hidden}
-.cdot{position:absolute;width:8px;height:8px;border-radius:50%;animation:cfall .9s ease forwards}
-@keyframes cfall{0%{transform:translateY(0) rotate(0);opacity:1}100%{transform:translateY(100px) rotate(400deg);opacity:0}}
+.cdot{position:absolute;width:8px;height:8px;border-radius:2px;animation:confettiFall .9s ease forwards}
 </style>
 </head>
 <body>
@@ -82,209 +434,282 @@ const ADMIN_URL='https://bohmust.github.io/fidelitab2/admin.html';
 const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 const PRODUCT_FROM_QR=new URLSearchParams(window.location.search).get('p');
 
-let state={screen:'phone',phone:'',member:null,rules:[],cards:{},errors:{},form:{prenom:'',nom:'',dob:'',email:'',rgpd:false},confirmedCount:0,isComplete:false};
+let state={phone:'',member:null,rules:[],cards:{},errors:{},form:{prenom:'',nom:'',dob:'',email:'',rgpd:false},confirmedCount:0,isComplete:false};
+let pollTimer=null;
 
 const fmt=v=>v.replace(/\D/g,'').slice(0,10).replace(/(\d{2})(?=\d)/g,'$1 ').trim();
 const clean=v=>v.replace(/\s/g,'');
-const $app=()=>document.getElementById('app');
+const $=id=>document.getElementById(id);
+const $app=()=>$('app');
 
 function el(tag,attrs,...ch){
   const n=document.createElement(tag);
-  if(attrs)Object.entries(attrs).forEach(([k,v])=>{if(k==='class')n.className=v;else if(k.startsWith('on'))n[k]=v;else n[k]=v;});
+  if(attrs)Object.entries(attrs).forEach(([k,v])=>{
+    if(k==='class')n.className=v;
+    else if(k.startsWith('on'))n[k]=v;
+    else if(k==='html')n.innerHTML=v;
+    else n.setAttribute(k,v);
+  });
   ch.flat().forEach(c=>{if(c!=null&&c!==false)n.appendChild(typeof c==='string'?document.createTextNode(c):c);});
   return n;
 }
 
-function header(){
-  return el('div',{class:'header'},el('span',{style:'font-size:20px'},'🏷️'),el('div',null,el('div',{class:'h-name'},SHOP.name),el('div',{class:'h-addr'},SHOP.addr)));
-}
-
-function confetti(){
-  const cols=['#1D9E75','#534AB7','#F5A623','#D85A30','#185FA5'];
+function confettiEl(){
+  const cols=['#C9922A','#1A7A5E','#C94040','#534AB7','#E8B450'];
   const w=el('div',{class:'confetti-wrap'});
-  for(let i=0;i<18;i++){const d=el('div',{class:'cdot'});d.style.cssText=`background:${cols[i%5]};left:${10+Math.random()*80}%;top:${5+Math.random()*50}%;animation-delay:${Math.random()*.6}s`;w.appendChild(d);}
+  for(let i=0;i<20;i++){
+    const d=el('div',{class:'cdot'});
+    d.style.cssText=`background:${cols[i%5]};left:${5+Math.random()*90}%;top:${Math.random()*40}%;animation-delay:${Math.random()*.7}s;animation-duration:${.7+Math.random()*.5}s`;
+    w.appendChild(d);
+  }
   return w;
 }
 
-async function findMember(phone){const{data}=await sb.from('membres').select('*').eq('telephone',phone).single();return data;}
+function getTier(pts){
+  if(pts>=3000)return['Platine','#534AB7'];
+  if(pts>=1500)return['Or','#C9922A'];
+  if(pts>=500)return['Argent','#777'];
+  return['Bronze','#C9922A'];
+}
+
+async function findMember(p){const{data}=await sb.from('membres').select('*').eq('telephone',p).single();return data;}
 async function createMember(d){const{data,error}=await sb.from('membres').insert([d]).select().single();if(error)throw error;return data;}
 async function getRules(){const{data}=await sb.from('regles_tampons').select('*').eq('actif',true).order('ordre');return data||[];}
-async function getCards(mId){const{data}=await sb.from('cartes_tampons').select('regle_id,compteur').eq('membre_id',mId);const m={};(data||[]).forEach(c=>m[c.regle_id]=c.compteur);return m;}
+async function getCards(id){const{data}=await sb.from('cartes_tampons').select('regle_id,compteur').eq('membre_id',id);const m={};(data||[]).forEach(c=>m[c.regle_id]=c.compteur);return m;}
 
 function makeQR(containerId,text,size){
-  const container=document.getElementById(containerId);
-  if(!container||!window.QRCode)return;
-  container.innerHTML='';
-  try{new QRCode(container,{text,width:size,height:size,colorDark:'#1a1a1a',colorLight:'#ffffff'});}catch(e){}
+  const wrap=$(containerId);
+  if(!wrap||!window.QRCode)return;
+  wrap.innerHTML='';
+  try{new QRCode(wrap,{text,width:size,height:size,colorDark:'#0D0D14',colorLight:'#ffffff'});}catch(e){}
 }
 
-// PHONE SCREEN
+// ── PHONE ──
 function renderPhone(){
   const app=$app();app.innerHTML='';
-  const inp=el('input',{class:'inp inp-phone',type:'tel',placeholder:'06 XX XX XX XX',value:fmt(state.phone),
+  const inp=el('input',{'class':'phone-input',type:'tel',placeholder:'06 XX XX XX XX',value:fmt(state.phone),
     oninput:e=>{state.phone=clean(e.target.value);e.target.value=fmt(state.phone);},
     onkeydown:e=>{if(e.key==='Enter')doCheckPhone();}});
-  const s=el('div',{class:'screen'});
-  s.appendChild(header());
-  s.appendChild(el('div',{class:'content'},
-    el('div',null,el('div',{class:'title'},'Bienvenue !'),el('div',{class:'sub'},PRODUCT_FROM_QR?`QR ${PRODUCT_FROM_QR} scanné. Entrez votre numéro.`:'Entrez votre numéro pour accéder à votre carte ou vous inscrire gratuitement.')),
-    inp,
-    state.errors.phone?el('div',{class:'err-msg',style:'text-align:center'},state.errors.phone):null,
-    el('button',{class:'btn btn-purple',onclick:doCheckPhone},'Continuer →'),
-    el('div',{class:'info-box',style:'margin-top:auto'},el('span',null,'🔒'),el('span',null,'Vos données sont protégées.'))
+  const s=el('div',{class:'screen phone-screen'});
+  s.appendChild(el('div',{class:'phone-hero'},
+    el('div',{class:'hero-logo'},'F'),
+    el('div',{class:'hero-title'},'Votre carte ',el('em',null,'fidélité')),
+    el('div',{class:'hero-sub'},PRODUCT_FROM_QR?`QR ${PRODUCT_FROM_QR} scanné — entrez votre numéro.`:'Entrez votre numéro pour accéder à votre carte ou vous inscrire gratuitement.')
+  ));
+  s.appendChild(el('div',{class:'phone-body'},
+    el('div',{class:'phone-label'},'Numéro de téléphone'),
+    el('div',{class:'phone-input-wrap'},inp),
+    state.errors.phone?el('div',{class:'err-chip'},state.errors.phone):el('span',null),
+    el('button',{class:'btn-primary',onclick:doCheckPhone},'Continuer →'),
+    el('div',{class:'security-note'},el('span',null,'🔒'),el('span',null,'Vos données sont protégées selon le RGPD'))
   ));
   app.appendChild(s);
-  setTimeout(()=>inp.focus(),50);
+  setTimeout(()=>inp.focus(),80);
 }
 
-// REGISTER SCREEN
+// ── REGISTER ──
 function renderRegister(){
   const{form,errors}=state;
   const app=$app();app.innerHTML='';
   const s=el('div',{class:'screen'});
-  s.appendChild(header());
-  const mkF=(type,ph,key,lbl,hint)=>el('div',{class:'field'},
-    el('label',null,lbl,errors[key]?null:(hint?el('span',null,hint):null)),
-    el('input',{class:'inp'+(errors[key]?' err-field':''),type,placeholder:ph,value:form[key]||'',...(type==='date'?{max:new Date().toISOString().split('T')[0]}:{}),oninput:e=>{state.form[key]=e.target.value;}}),
-    errors[key]?el('div',{class:'err-msg'},errors[key]):null
-  );
-  const cb=el('input',{type:'checkbox',onchange:e=>{state.form.rgpd=e.target.checked;}});
-  cb.checked=form.rgpd;
-  s.appendChild(el('div',{class:'content'},
-    el('div',null,el('span',{class:'badge'},'Première visite'),el('div',{class:'title',style:'margin-top:8px'},'Créez votre compte'),el('div',{class:'sub'},'Numéro : ',el('strong',null,fmt(state.phone)))),
-    mkF('text','Votre prénom','prenom','Prénom',null),
-    mkF('text','Votre nom de famille','nom','Nom',null),
-    mkF('date','','dob','Date de naissance','Optionnel — bonus anniversaire'),
-    mkF('email','votre@email.fr','email','Email','Optionnel — récap de points'),
-    el('div',{class:'rgpd-box'},
-      el('div',{class:'rgpd-title'},'Protection de vos données (RGPD)'),
-      el('div',{class:'rgpd-text'},`${SHOP.name} collecte vos données uniquement pour votre programme de fidélité. Aucune transmission à des tiers. Suppression possible en caisse.`),
-      el('label',{class:'rgpd-check'},cb,el('span',{style:errors.rgpd?'color:var(--red)':''},`J'accepte que mes données soient utilisées pour le programme de fidélité de ${SHOP.name} *`)),
-      errors.rgpd?el('div',{class:'err-msg',style:'margin-top:6px'},errors.rgpd):null
-    ),
-    el('button',{class:'btn btn-green',onclick:doRegister},"M'inscrire gratuitement →"),
-    el('button',{class:'btn btn-ghost',onclick:()=>{state.screen='phone';state.errors={};renderPhone();}},'← Modifier le numéro')
+  s.appendChild(el('div',{class:'shop-header'},
+    el('div',{class:'shop-logo'},'F'),
+    el('div',null,el('div',{class:'shop-name'},SHOP.name),el('div',{class:'shop-addr'},SHOP.addr))
   ));
+  s.appendChild(el('div',{class:'reg-header'},
+    el('div',{class:'reg-back',onclick:()=>{state.errors={};renderPhone();}},'← Modifier'),
+    el('div',{class:'reg-title'},'Première visite 👋'),
+    el('div',{class:'reg-subtitle'},'Créez votre compte — c\'est gratuit et rapide')
+  ));
+  const body=el('div',{class:'reg-body'});
+  const mkF=(type,ph,key,lbl,hint)=>{
+    const i=el('input',{class:'inp'+(errors[key]?' err':''),type,placeholder:ph,value:form[key]||'',oninput:e=>{state.form[key]=e.target.value;}});
+    const f=el('div',{class:'field'},
+      el('div',{class:'field-label'},lbl,hint?el('span',null,hint):null),i
+    );
+    if(errors[key])f.appendChild(el('div',{class:'err-txt'},errors[key]));
+    return f;
+  };
+  const cb=el('input',{type:'checkbox',id:'rgpd-cb',onchange:e=>{state.form.rgpd=e.target.checked;}});
+  cb.checked=form.rgpd;
+  body.appendChild(mkF('text','Votre prénom','prenom','Prénom',null));
+  body.appendChild(mkF('text','Votre nom de famille','nom','Nom',null));
+  body.appendChild(mkF('date','','dob','Date de naissance','Optionnel'));
+  body.appendChild(mkF('email','votre@email.fr','email','Email','Optionnel'));
+  body.appendChild(el('div',{class:'rgpd-wrap'},
+    el('div',{class:'rgpd-title'},'Protection de vos données (RGPD)'),
+    el('div',{class:'rgpd-text'},`${SHOP.name} collecte vos données uniquement pour votre programme de fidélité. Aucune transmission à des tiers. Suppression possible en caisse.`),
+    el('div',{class:'rgpd-check'},cb,el('label',{for:'rgpd-cb'},`J'accepte que mes données soient utilisées pour le programme de fidélité de ${SHOP.name} *`)),
+    errors.rgpd?el('div',{class:'err-txt',style:'margin-top:6px'},errors.rgpd):null
+  ));
+  body.appendChild(el('button',{class:'btn-register',onclick:doRegister},"M'inscrire gratuitement →"));
+  body.appendChild(el('button',{class:'btn-back',onclick:()=>{state.errors={};renderPhone();}},'← Retour'));
+  s.appendChild(body);
   app.appendChild(s);
 }
 
-// LOADING
+// ── LOADING ──
 function renderLoading(){
   const app=$app();app.innerHTML='';
   const s=el('div',{class:'screen'});
-  s.appendChild(header());
-  s.appendChild(el('div',{class:'loading'},el('div',{class:'spinner'}),el('div',null,'Chargement...')));
+  s.appendChild(el('div',{class:'shop-header'},
+    el('div',{class:'shop-logo'},'F'),
+    el('div',null,el('div',{class:'shop-name'},SHOP.name),el('div',{class:'shop-addr'},SHOP.addr))
+  ));
+  s.appendChild(el('div',{class:'loading'},el('div',{class:'spinner'}),el('div',{class:'loading-text'},'Chargement...')));
   app.appendChild(s);
 }
 
-// WELCOME
+// ── WELCOME ──
 function renderWelcome(){
   const app=$app();app.innerHTML='';
-  const s=el('div',{class:'screen',style:'position:relative'});
-  s.appendChild(confetti());
-  const grid=el('div',{style:'display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%;margin-bottom:24px'});
-  state.rules.forEach(r=>grid.appendChild(el('div',{style:'background:#f9fafb;border-radius:12px;padding:12px;text-align:center'},el('div',{style:'font-size:22px;margin-bottom:4px'},r.emoji),el('div',{style:'font-size:13px;font-weight:600'},r.nom),el('div',{style:'font-size:11px;color:var(--text2);margin-top:2px'},r.objectif+' achats → offert'))));
-  s.appendChild(el('div',{class:'confirm'},
-    el('div',{class:'c-emoji'},'🎉'),
-    el('div',{class:'c-title'},'Bienvenue '+(state.member.nom.split(' ')[0])+' !'),
-    el('div',{class:'c-sub'},'Votre carte de fidélité est créée.\nMontrez votre QR code au caissier à chaque achat.'),
+  const s=el('div',{class:'screen'});
+  s.appendChild(confettiEl());
+  const grid=el('div',{class:'products-grid'});
+  state.rules.forEach(r=>{
+    grid.appendChild(el('div',{class:'product-item'},
+      el('div',{class:'emoji'},r.emoji),
+      el('div',{class:'pname'},r.nom),
+      el('div',{class:'psub'},r.objectif+' achats → offert')
+    ));
+  });
+  s.appendChild(el('div',{class:'welcome'},
+    el('div',{class:'welcome-icon'},'🎉'),
+    el('div',{class:'welcome-title'},'Bienvenue '+state.member.nom.split(' ')[0]+'  !'),
+    el('div',{class:'welcome-sub'},'Votre carte de fidélité est créée. Montrez votre QR code au caissier à chaque achat.'),
     grid,
-    el('button',{class:'btn btn-purple',onclick:renderHome},'Voir mes cartes →')
+    el('button',{class:'btn-continue',onclick:renderHome},'Voir mes cartes →')
   ));
   app.appendChild(s);
 }
 
-// HOME — QR affiché directement
+// ── HOME ──
 function renderHome(){
   const ready=state.rules.filter(r=>(state.cards[r.id]||0)>=r.objectif);
+  const[tierName,tierColor]=getTier(state.member.points||0);
   const app=$app();app.innerHTML='';
   const s=el('div',{class:'screen'});
-  const uH=el('div',{class:'user-hd'},
-    el('div',{style:'display:flex;align-items:center;gap:12px'},
-      el('div',{class:'uav'},state.member.nom[0]),
-      el('div',null,el('div',{class:'uname'},'Bonjour '+(state.member.nom.split(' ')[0])+' !'),el('div',{class:'upts'},(state.member.points||0).toLocaleString('fr-FR')+' points'))
+
+  // User header
+  const uc=el('div',{class:'user-card'});
+  uc.appendChild(el('div',{class:'user-row'},
+    el('div',{class:'user-av'},state.member.nom[0]),
+    el('div',null,
+      el('div',{class:'user-name'},'Bonjour, '+state.member.nom.split(' ')[0]+' !'),
+      el('div',{class:'user-sub'},SHOP.name)
     ),
-    ready.length?el('div',{class:'rbanner'},'🎉 '+(ready.length)+' récompense(s) disponible(s) — demandez en caisse !'):null
-  );
-  s.appendChild(uH);
-  const wrap=el('div',{class:'cards-wrap'});
-  wrap.appendChild(el('div',{class:'sec-lbl'},'Mes cartes tampons'));
-  state.rules.forEach(r=>{
-    const count=state.cards[r.id]||0,full=count>=r.objectif,pct=Math.round(count/r.objectif*100);
-    const card=el('div',{class:'stamp-card'+(full?' full':'')});
-    const dots=el('div',{class:'dots-row'});
+    el('div',{class:'level-badge',style:'color:'+tierColor+';border-color:'+tierColor+'40;background:'+tierColor+'18'},tierName)
+  ));
+  uc.appendChild(el('div',{class:'points-row'},
+    el('div',{class:'points-num'},(state.member.points||0).toLocaleString('fr-FR')),
+    el('div',{class:'points-label'},'points accumulés')
+  ));
+  if(ready.length){
+    uc.appendChild(el('div',{class:'reward-banner'},
+      el('span',null,'🎁'),
+      el('span',null,ready.length+' récompense'+(ready.length>1?'s':'')+' disponible'+(ready.length>1?'s':'')+' — demandez en caisse !')
+    ));
+  }
+  s.appendChild(el('div',{class:'user-header'},
+    el('div',{class:'shop-header',style:'background:transparent;padding:14px 22px 10px'},
+      el('div',{class:'shop-logo'},'F'),
+      el('div',null,el('div',{class:'shop-name'},SHOP.name),el('div',{class:'shop-addr'},SHOP.addr))
+    ),
+    uc
+  ));
+
+  // Stamp cards
+  const section=el('div',{class:'cards-section'});
+  section.appendChild(el('div',{class:'section-title'},'Mes cartes tampons'));
+  state.rules.forEach((r,ri)=>{
+    const count=state.cards[r.id]||0;
+    const full=count>=r.objectif;
+    const pct=Math.round(count/r.objectif*100);
+    const card=el('div',{class:'stamp-card'+(full?' full':''),style:`animation-delay:${ri*.06}s`});
+    const dots=el('div',{class:'dots'});
     for(let i=0;i<r.objectif;i++)dots.appendChild(el('div',{class:'dot '+(i<count?'on':'off')},i<count?'✓':''));
-    card.appendChild(el('div',{style:'display:flex;align-items:center;justify-content:space-between;margin-bottom:10px'},
-      el('div',{style:'display:flex;gap:8px;align-items:center'},
-        el('span',{style:'font-size:20px'},r.emoji),
-        el('div',null,el('div',{style:'font-size:14px;font-weight:600;color:'+(full?'#3C3489':'var(--text)')},r.nom),el('div',{style:'font-size:12px;color:'+(full?'#534AB7':'var(--text2)')},full?'✓ Récompense disponible !':r.recompense))
+    const pb=el('div',{class:'progress-bar'});
+    const pf=el('div',{class:'progress-fill',style:`width:${pct}%`});
+    pb.appendChild(pf);
+    card.appendChild(el('div',{class:'card-top'},
+      el('div',{class:'card-left'},
+        el('div',{class:'card-emoji'},r.emoji),
+        el('div',null,
+          el('div',{class:'card-name'},r.nom),
+          el('div',{class:'card-sub'},full?'Récompense disponible ✓':r.recompense)
+        )
       ),
-      el('span',{style:'font-size:13px;font-weight:600;color:'+(full?'#3C3489':'var(--text2)')},count+'/'+r.objectif)
+      el('div',{class:'card-count'},count+'/'+r.objectif)
     ));
     card.appendChild(dots);
-    if(!full){const pb=el('div',{class:'pbar'});const pf=el('div',{class:'pbar-fill'});pf.style.width=pct+'%';pb.appendChild(pf);card.appendChild(pb);}
-    wrap.appendChild(card);
+    if(!full)card.appendChild(pb);
+    else card.appendChild(el('div',{class:'full-tag'},el('span',null,'🎁'),el('span',null,'Demandez votre récompense en caisse')));
+    section.appendChild(card);
   });
-  s.appendChild(wrap);
+  s.appendChild(section);
 
-  // QR code direct en bas
-  const qrBox=el('div',{class:'qr-box'});
-  qrBox.appendChild(el('div',{class:'qr-label'},'Mon QR code — montrez-le au caissier'));
-  qrBox.appendChild(el('div',{id:'homeQRDiv',style:'display:flex;justify-content:center;margin-bottom:8px'}));
-  qrBox.appendChild(el('div',{class:'qr-hint'},'Le caissier scanne ce QR avec son téléphone → tampon ajouté automatiquement'));
-
+  // QR code
+  const qrSec=el('div',{class:'qr-section'});
+  const qrCard=el('div',{class:'qr-card'});
+  qrCard.appendChild(el('div',{class:'qr-eyebrow'},'Mon QR code personnel'));
+  qrCard.appendChild(el('div',{class:'qr-wrap'},el('div',{class:'qr-inner',id:'homeQR'})));
+  qrCard.appendChild(el('div',{class:'qr-name'},state.member.nom));
+  qrCard.appendChild(el('div',{class:'qr-hint'},'Montrez ce code au caissier · Il le scanne avec son téléphone'));
+  qrSec.appendChild(qrCard);
+  s.appendChild(qrSec);
   s.appendChild(el('div',{class:'bottom-bar'},
-    qrBox,
-    el('button',{class:'btn btn-ghost',onclick:doLogout},'← Se déconnecter')
+    el('button',{class:'btn-logout',onclick:doLogout},'← Se déconnecter')
   ));
   app.appendChild(s);
 
-  // Générer le QR après le rendu
+  // Generate QR
   setTimeout(()=>{
     const pp=PRODUCT_FROM_QR;
     const rule=pp?state.rules.find(r=>r.nom.toLowerCase().includes(pp)||r.nom.toLowerCase().includes(pp.replace('ecig','cig'))):state.rules[0];
     const rid=rule?rule.id:(state.rules[0]?.id||1);
     const url=ADMIN_URL+'?scan='+state.member.id+'&rule='+rid;
-    const wrap=document.getElementById('homeQRDiv');
-    if(wrap&&window.QRCode){wrap.innerHTML='';new QRCode(wrap,{text:url,width:150,height:150,colorDark:'#1a1a1a',colorLight:'#ffffff'});}
-  },200);
+    makeQR('homeQR',url,140);
+  },250);
+
+  // Start polling
+  if(PRODUCT_FROM_QR){
+    const rule=state.rules.find(r=>r.nom.toLowerCase().includes(PRODUCT_FROM_QR));
+    if(rule)startPolling(rule.id);
+  }
 }
 
-// CONFIRM
+// ── CONFIRM ──
 function renderConfirm(ruleId){
   const r=state.rules.find(x=>x.id===ruleId);
   const count=state.confirmedCount,full=state.isComplete;
   const app=$app();app.innerHTML='';
-  const s=el('div',{class:'screen',style:'position:relative'});
-  if(full)s.appendChild(confetti());
-  const dots=el('div',{class:'dots-row',style:'justify-content:center;margin-bottom:20px'});
+  const s=el('div',{class:'screen'});
+  if(full)s.appendChild(confettiEl());
+  const dots=el('div',{class:'confirm-dots'});
   for(let i=0;i<r.objectif;i++)dots.appendChild(el('div',{class:'dot '+(i<count?'on':'off')},i<count?'✓':''));
-  s.appendChild(el('div',{class:'confirm'},
-    el('div',{class:'c-emoji'},full?'🎉':r.emoji),
-    el('div',{class:'c-title',style:full?'color:#3C3489':''},full?'Récompense débloquée !':'Tampon ajouté !'),
-    el('div',{class:'c-sub'},full?`Carte ${r.nom} complète !\nMontrez cet écran en caisse.`:'+1 tampon enregistré sur votre carte '+r.nom+'.'),
+  s.appendChild(el('div',{class:'confirm-screen'},
+    el('div',{class:'confirm-emoji'},full?'🎉':r.emoji),
+    el('div',{class:'confirm-title'},full?'Récompense débloquée !':'Tampon ajouté !'),
+    el('div',{class:'confirm-sub'},full?`Carte ${r.nom} complète !\nMontrez cet écran en caisse.`:'+1 tampon enregistré sur votre carte '+r.nom+'.'),
     full?el('div',{class:'reward-box'},r.recompense):dots,
-    el('button',{class:'btn '+(full?'btn-purple':'btn-green'),style:'max-width:280px',onclick:renderHome},'Voir mes cartes →'),
-    el('button',{class:'btn btn-ghost',style:'margin-top:6px',onclick:doLogout},'Se déconnecter')
+    el('button',{class:'btn-home',onclick:renderHome},'Voir mes cartes →'),
+    el('button',{class:'btn-logout',style:'margin-top:4px',onclick:doLogout},'Se déconnecter')
   ));
-  s.appendChild(el('div',{class:'footer-txt'},SHOP.name+' · Merci de votre visite 😊'));
   app.appendChild(s);
 }
 
-// POLL FOR STAMP
-let pollTimer=null;
+// ── POLL ──
 function startPolling(ruleId){
   if(pollTimer)clearInterval(pollTimer);
-  const lastCount=state.cards[ruleId]||0;
+  const last=state.cards[ruleId]||0;
   pollTimer=setInterval(async()=>{
     try{
       const fresh=await getCards(state.member.id);
-      const newCount=fresh[ruleId]||0;
-      if(newCount>lastCount){
+      if((fresh[ruleId]||0)>last){
         clearInterval(pollTimer);
         state.cards=fresh;
-        state.confirmedCount=newCount;
-        state.isComplete=newCount>=(state.rules.find(r=>r.id===ruleId)?.objectif||99);
+        state.confirmedCount=fresh[ruleId];
+        state.isComplete=fresh[ruleId]>=(state.rules.find(r=>r.id===ruleId)?.objectif||99);
         const{data}=await sb.from('membres').select('points').eq('id',state.member.id).single();
         if(data)state.member.points=data.points;
         renderConfirm(ruleId);
@@ -293,7 +718,7 @@ function startPolling(ruleId){
   },2000);
 }
 
-// ACTIONS
+// ── ACTIONS ──
 async function doCheckPhone(){
   const c=clean(state.phone);
   if(c.length<10){state.errors={phone:'Entrez un numéro à 10 chiffres'};renderPhone();return;}
@@ -305,10 +730,6 @@ async function doCheckPhone(){
       state.member=member;
       state.cards=await getCards(member.id);
       state.errors={};
-      if(PRODUCT_FROM_QR){
-        const rule=state.rules.find(r=>r.nom.toLowerCase().includes(PRODUCT_FROM_QR)||r.nom.toLowerCase().includes(PRODUCT_FROM_QR.replace('ecig','cig')));
-        if(rule){startPolling(rule.id);}
-      }
       renderHome();
     }else{
       state.errors={};
@@ -329,14 +750,13 @@ async function doRegister(){
   try{
     const m=await createMember({nom:form.prenom.trim()+' '+form.nom.trim().toUpperCase(),telephone:clean(state.phone),email:form.email||null,date_naissance:form.dob||null,rgpd_accepte_le:new Date().toISOString()});
     state.member=m;state.cards={};
-    state.rules=await getRules();
     renderWelcome();
   }catch(e){state.errors={prenom:"Erreur d'inscription — réessayez"};renderRegister();}
 }
 
 function doLogout(){
   if(pollTimer)clearInterval(pollTimer);
-  state={screen:'phone',phone:'',member:null,rules:[],cards:{},errors:{},form:{prenom:'',nom:'',dob:'',email:'',rgpd:false},confirmedCount:0,isComplete:false};
+  state={phone:'',member:null,rules:[],cards:{},errors:{},form:{prenom:'',nom:'',dob:'',email:'',rgpd:false},confirmedCount:0,isComplete:false};
   renderPhone();
 }
 
