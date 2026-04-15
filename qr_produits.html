@@ -1,98 +1,426 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-<meta charset="UTF-8">
-<title>FidéliTab — QR codes produits</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@600;700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
-<style>
-*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'DM Sans',sans-serif;background:#F7F7F5;padding:32px 20px;color:#0D0D14}
-.header{text-align:center;margin-bottom:32px}
-.header h1{font-family:'Fraunces',serif;font-size:24px;font-weight:700;margin-bottom:8px}
-.header p{font-size:14px;color:#5A5A72;line-height:1.6;max-width:500px;margin:0 auto}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:20px;max-width:900px;margin:0 auto 32px}
-.card{
-  background:#fff;border:1px solid #EBEBEB;border-radius:18px;
-  padding:24px 20px;text-align:center;
-  box-shadow:0 2px 12px rgba(13,13,20,.07);
-}
-.card-top{width:4px;height:40px;border-radius:2px;margin:0 auto 16px;display:none}
-.emoji{font-size:36px;margin-bottom:10px}
-.name{font-family:'Fraunces',serif;font-size:17px;font-weight:700;margin-bottom:4px}
-.sub{font-size:12px;color:#5A5A72;margin-bottom:16px;line-height:1.5}
-.qr-wrap{display:flex;justify-content:center;margin-bottom:14px}
-.qr-inner{background:#fff;border-radius:12px;padding:8px;border:1px solid #EBEBEB;display:inline-block}
-.url{font-size:10px;color:#9898B0;word-break:break-all;line-height:1.4}
-.btn-print{
-  display:block;margin:0 auto;
-  padding:13px 28px;background:#0D0D14;color:#fff;
-  border:none;border-radius:12px;font-family:'DM Sans',sans-serif;
-  font-size:15px;font-weight:600;cursor:pointer;
-}
-.loading{text-align:center;padding:60px;color:#5A5A72;font-size:15px}
-@media print{
-  body{background:#fff;padding:16px}
-  .header p,.btn-print{display:none}
-  .header h1{font-size:18px}
-  .grid{grid-template-columns:repeat(2,1fr);gap:16px}
-  .card{break-inside:avoid;border:1px solid #ccc;box-shadow:none}
-}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>QR Produits - FidéliTab</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,700;1,400&family=Fraunces:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: #0D0D14;
+            color: #FFFFFF;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 32px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid rgba(201, 146, 42, 0.2);
+        }
+
+        .logo {
+            font-family: 'Fraunces', serif;
+            font-size: 28px;
+            font-weight: 700;
+            color: #C9922A;
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            font-size: 14px;
+            color: rgba(255,255,255,0.6);
+        }
+
+        h1 {
+            font-family: 'Fraunces', serif;
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .badge-info {
+            background: rgba(26, 122, 94, 0.2);
+            border: 1px solid rgba(26, 122, 94, 0.5);
+            border-radius: 12px;
+            padding: 12px 16px;
+            margin-bottom: 24px;
+            font-size: 13px;
+            color: #1A7A5E;
+            text-align: center;
+        }
+
+        /* Filtres */
+        .filters {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            padding: 8px 16px;
+            border-radius: 30px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 14px;
+            font-weight: 500;
+            color: rgba(255,255,255,0.7);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .filter-btn.active {
+            background: #C9922A;
+            border-color: #C9922A;
+            color: #0D0D14;
+        }
+
+        /* Grille produits */
+        .products-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .product-card {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 20px;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .product-card:hover {
+            background: rgba(255,255,255,0.06);
+            border-color: rgba(201, 146, 42, 0.3);
+        }
+
+        .product-icon {
+            width: 56px;
+            height: 56px;
+            background: rgba(201, 146, 42, 0.15);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+        }
+
+        .product-info {
+            flex: 1;
+        }
+
+        .product-name {
+            font-family: 'Fraunces', serif;
+            font-size: 18px;
+            font-weight: 600;
+            color: #FFFFFF;
+            margin-bottom: 4px;
+        }
+
+        .product-desc {
+            font-size: 13px;
+            color: rgba(255,255,255,0.5);
+        }
+
+        .product-stamps {
+            display: flex;
+            align-items: baseline;
+            gap: 8px;
+        }
+
+        .stamps-count {
+            font-size: 24px;
+            font-weight: 700;
+            color: #C9922A;
+        }
+
+        .stamps-label {
+            font-size: 12px;
+            color: rgba(255,255,255,0.5);
+        }
+
+        .qr-badge {
+            background: #C9922A;
+            color: #0D0D14;
+            padding: 8px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* Loading & Empty */
+        .loading {
+            text-align: center;
+            padding: 60px 20px;
+            color: rgba(255,255,255,0.5);
+        }
+
+        .empty {
+            text-align: center;
+            padding: 60px 20px;
+            background: rgba(255,255,255,0.03);
+            border-radius: 24px;
+            color: rgba(255,255,255,0.5);
+        }
+
+        /* Modal QR */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(13,13,20,0.95);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: #1A1A24;
+            border-radius: 32px;
+            padding: 32px;
+            text-align: center;
+            max-width: 400px;
+            width: 100%;
+            border: 1px solid rgba(201,146,42,0.3);
+        }
+
+        .modal-content h3 {
+            font-family: 'Fraunces', serif;
+            font-size: 22px;
+            margin-bottom: 8px;
+        }
+
+        .qr-container {
+            background: white;
+            padding: 20px;
+            border-radius: 24px;
+            margin: 20px 0;
+            display: inline-block;
+        }
+
+        .qr-container canvas {
+            width: 200px;
+            height: 200px;
+        }
+
+        .close-modal {
+            background: rgba(255,255,255,0.1);
+            border: none;
+            padding: 12px 24px;
+            border-radius: 30px;
+            color: white;
+            font-family: 'DM Sans', sans-serif;
+            font-weight: 500;
+            cursor: pointer;
+            margin-top: 16px;
+        }
+
+        .instruction {
+            font-size: 13px;
+            color: #C9922A;
+            margin-top: 12px;
+        }
+
+        @media (max-width: 480px) {
+            body { padding: 16px; }
+            .product-card { padding: 16px; }
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
-<div class="header">
-  <h1>🏷️ QR codes produits</h1>
-  <p>Imprimez et plastifiez ces QR codes. Posez-les sur le comptoir à côté de chaque produit. Les produits sont chargés automatiquement depuis votre configuration.</p>
-</div>
-<div class="grid" id="qrGrid"><div class="loading">Chargement des produits...</div></div>
-<button class="btn-print" onclick="window.print()">🖨️ Imprimer les QR codes</button>
+    <div class="container">
+        <div class="header">
+            <div class="logo">FidéliTab</div>
+            <div class="subtitle">QR Codes produits</div>
+        </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-<script>
-const SUPABASE_URL='https://cgyvmrxpoofrnturffxl.supabase.co';
-const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNneXZtcnhwb29mcm50dXJmZnhsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIzNjkxNjQsImV4cCI6MjA4Nzk0NTE2NH0.0JNkokFJOshJnzyrBOSbgrnyFHeLvA5pMaaL1jP8kq8';
-const BASE_URL='https://bohmust.github.io/fidelitab2';
-const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+        <div class="badge-info">
+            📱 Scannez le QR code d'un produit pour offrir un tampon à un client
+        </div>
 
-const COLORS=['#C9922A','#1A7A5E','#0D0D14','#C94040','#534AB7','#185FA5','#7A3B8A','#2B7A3B'];
+        <div class="filters">
+            <button class="filter-btn active" data-filter="all">Tous</button>
+            <button class="filter-btn" data-filter="bronze">Bronze</button>
+            <button class="filter-btn" data-filter="argent">Argent</button>
+            <button class="filter-btn" data-filter="or">Or</button>
+            <button class="filter-btn" data-filter="platine">Platine</button>
+        </div>
 
-async function load(){
-  const{data:rules}=await sb.from('regles_tampons').select('*').eq('actif',true).order('ordre');
-  const grid=document.getElementById('qrGrid');
-  if(!rules||rules.length===0){
-    grid.innerHTML='<div class="loading">Aucun produit configuré. Ajoutez des produits dans l\'admin ⚙ Produits.</div>';
-    return;
-  }
-  grid.innerHTML='';
-  rules.forEach((r,i)=>{
-    // Slug: nom en minuscules, sans accents, sans espaces
-    const slug=r.nom.toLowerCase()
-      .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
-      .replace(/[^a-z0-9]/g,'-').replace(/-+/g,'-').replace(/^-|-$/g,'');
-    const url=`${BASE_URL}/?p=${slug}`;
-    const color=COLORS[i%COLORS.length];
-    const card=document.createElement('div');
-    card.className='card';
-    card.style.borderTop=`4px solid ${color}`;
-    card.innerHTML=`
-      <div class="emoji">${r.emoji}</div>
-      <div class="name">${r.nom}</div>
-      <div class="sub">${r.objectif} achats → ${r.recompense}</div>
-      <div class="qr-wrap"><div class="qr-inner" id="qr_${r.id}"></div></div>
-      <div class="url">${url}</div>`;
-    grid.appendChild(card);
-    setTimeout(()=>{
-      new QRCode(document.getElementById('qr_'+r.id),{
-        text:url,width:150,height:150,
-        colorDark:'#0D0D14',colorLight:'#ffffff'
-      });
-    },100);
-  });
-}
+        <div id="productsGrid" class="products-grid">
+            <div class="loading">Chargement des produits...</div>
+        </div>
+    </div>
 
-load();
-</script>
+    <!-- Modal QR -->
+    <div id="qrModal" class="modal">
+        <div class="modal-content">
+            <h3 id="modalProductName"></h3>
+            <p id="modalProductDesc" style="color:rgba(255,255,255,0.6); margin-bottom:16px;"></p>
+            <div class="qr-container" id="qrCodeContainer"></div>
+            <button class="close-modal" onclick="closeQRModal()">Fermer</button>
+            <div class="instruction">
+                📸 Scannez ce QR code avec l'appareil photo du téléphone du client
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const SUPABASE_URL = 'https://cgyvmrxpoofrnturffxl.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNneXZtcnhwb29mcm50dXJmZnhsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIzNjkxNjQsImV4cCI6MjA4Nzk0NTE2NH0.0JNkokFJOshJnzyrBOSbgrnyFHeLvA5pMaaL1jP8kq8';
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        let allProducts = [];
+        let currentFilter = 'all';
+
+        async function loadProducts() {
+            const grid = document.getElementById('productsGrid');
+            grid.innerHTML = '<div class="loading">Chargement des produits...</div>';
+            
+            try {
+                const { data, error } = await supabase
+                    .from('regles_tampons')
+                    .select('*')
+                    .eq('actif', true)
+                    .order('niveau_min', { ascending: true });
+                
+                if (error) throw error;
+                
+                allProducts = data || [];
+                renderProducts();
+            } catch (err) {
+                console.error('Erreur chargement produits:', err);
+                grid.innerHTML = '<div class="empty">❌ Erreur chargement des produits<br><small>Vérifiez votre connexion</small></div>';
+            }
+        }
+
+        function renderProducts() {
+            const grid = document.getElementById('productsGrid');
+            let filtered = allProducts;
+            
+            if (currentFilter !== 'all') {
+                filtered = allProducts.filter(p => p.niveau_min === currentFilter);
+            }
+            
+            if (filtered.length === 0) {
+                grid.innerHTML = '<div class="empty">📦 Aucun produit actif dans cette catégorie</div>';
+                return;
+            }
+            
+            grid.innerHTML = filtered.map(product => `
+                <div class="product-card" onclick="showQR('${product.id}', '${escapeHtml(product.nom)}', '${escapeHtml(product.description || '')}', ${product.tampons_requis})">
+                    <div class="product-icon">
+                        ${getProductIcon(product.nom)}
+                    </div>
+                    <div class="product-info">
+                        <div class="product-name">${escapeHtml(product.nom)}</div>
+                        <div class="product-desc">${escapeHtml(product.description || 'Sans description')}</div>
+                        <div class="product-stamps">
+                            <span class="stamps-count">${product.tampons_requis}</span>
+                            <span class="stamps-label">tampons requis</span>
+                        </div>
+                    </div>
+                    <div class="qr-badge">
+                        📱 QR
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function getProductIcon(productName) {
+            const name = productName.toLowerCase();
+            if (name.includes('café') || name.includes('expresso')) return '☕';
+            if (name.includes('croissant')) return '🥐';
+            if (name.includes('sandwich')) return '🥪';
+            if (name.includes('cigarette') || name.includes('tabac')) return '🚬';
+            if (name.includes('jeu') || name.includes('loterie')) return '🎫';
+            if (name.includes('boisson')) return '🥤';
+            if (name.includes('chocolat')) return '🍫';
+            return '🏷️';
+        }
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        let currentQRProduct = null;
+
+        function showQR(productId, productName, productDesc, tamponsRequis) {
+            document.getElementById('modalProductName').textContent = productName;
+            document.getElementById('modalProductDesc').textContent = `${productDesc} • ${tamponsRequis} tampons`;
+            
+            // Construire l'URL de scan
+            const scanUrl = `https://bohmust.github.io/fidelitab2/admin.html?scan=PRODUIT&rule=${productId}`;
+            
+            // Nettoyer l'ancien QR
+            const container = document.getElementById('qrCodeContainer');
+            container.innerHTML = '';
+            
+            // Générer nouveau QR
+            new QRCode(container, {
+                text: scanUrl,
+                width: 200,
+                height: 200,
+                colorDark: "#000000",
+                colorLight: "#ffffff",
+                correctLevel: QRCode.CorrectLevel.H
+            });
+            
+            document.getElementById('qrModal').classList.add('active');
+        }
+
+        function closeQRModal() {
+            document.getElementById('qrModal').classList.remove('active');
+        }
+
+        // Filtres
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentFilter = btn.dataset.filter;
+                renderProducts();
+            });
+        });
+
+        // Chargement initial
+        loadProducts();
+    </script>
 </body>
 </html>
