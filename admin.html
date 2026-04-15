@@ -37,7 +37,6 @@ input, button {
 button {
   background: #1A7A5E;
   color: white;
-  cursor: pointer;
 }
 
 .produit {
@@ -100,16 +99,14 @@ async function handleScan() {
 
   if (!membre_id || !rule_id) return;
 
-  // Vérifie si carte existe
   let { data: carte } = await supabase
     .from("cartes_tampons")
     .select("*")
     .eq("membre_id", membre_id)
     .eq("regle_id", rule_id)
-    .single();
+    .maybeSingle();
 
   if (!carte) {
-    // créer carte
     const { data } = await supabase
       .from("cartes_tampons")
       .insert([{
@@ -123,7 +120,6 @@ async function handleScan() {
     carte = data;
   }
 
-  // ajoute tampon
   const newCount = (carte.nb_tampons || 0) + 1;
 
   await supabase
@@ -139,25 +135,46 @@ async function handleScan() {
 
 // ➕ produit
 async function ajouterProduit() {
-  const nom = document.getElementById("nom_produit").value;
-  const nb = document.getElementById("nb_tampons").value;
+  const nom = document.getElementById("nom_produit").value.trim();
+  const nb = parseInt(document.getElementById("nb_tampons").value);
 
-  await supabase.from("regles_tampons").insert([{
-    nom,
-    nb_tampons: nb,
-    actif: true
-  }]);
+  if (!nom || !nb) {
+    alert("Remplis les champs");
+    return;
+  }
+
+  const { error } = await supabase
+    .from("regles_tampons")
+    .insert([{
+      nom: nom,
+      nb_tampons: nb,
+      actif: true
+    }]);
+
+  if (error) {
+    console.error(error);
+    alert("Erreur ajout");
+    return;
+  }
 
   showToast("Produit ajouté");
-  chargerProduits();
+  await chargerProduits();
+
+  document.getElementById("nom_produit").value = "";
+  document.getElementById("nb_tampons").value = "";
 }
 
-// 📦 liste produits
+// 📦 produits
 async function chargerProduits() {
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from("regles_tampons")
     .select("*")
     .order("id");
+
+  if (error) {
+    console.error(error);
+    return;
+  }
 
   const container = document.getElementById("liste_produits");
   container.innerHTML = "";
@@ -170,7 +187,7 @@ async function chargerProduits() {
   });
 }
 
-// init
+// INIT
 handleScan();
 chargerProduits();
 </script>
