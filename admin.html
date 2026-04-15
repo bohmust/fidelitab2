@@ -699,7 +699,10 @@ async function doAddRule(){
   showToast('✓ "'+nom+'" ajouté');
   document.getElementById('rNom').value=''; document.getElementById('rRecompense').value='';
   document.getElementById('addRulePanel').style.display='none';
-  await loadData(); document.getElementById('mainContent').innerHTML=buildSettings(); renderRulesList();
+  await loadData();
+  activeTab='settings';
+  document.getElementById('mainContent').innerHTML=buildSettings();
+  setTimeout(renderRulesList, 50);
 }
 
 async function deleteRule(id){
