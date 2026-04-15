@@ -25,7 +25,6 @@
             margin: 0 auto;
         }
 
-        /* Header */
         .header {
             display: flex;
             justify-content: space-between;
@@ -58,7 +57,6 @@
             color: #C9922A;
         }
 
-        /* Tabs */
         .tabs {
             display: flex;
             gap: 8px;
@@ -94,7 +92,6 @@
             display: block;
         }
 
-        /* Cards */
         .card {
             background: rgba(255,255,255,0.03);
             border: 1px solid rgba(255,255,255,0.08);
@@ -119,7 +116,6 @@
             color: #C9922A;
         }
 
-        /* Buttons */
         .btn-primary {
             background: #C9922A;
             border: none;
@@ -135,7 +131,6 @@
 
         .btn-primary:hover {
             background: #B07D1F;
-            transform: scale(1.02);
         }
 
         .btn-secondary {
@@ -160,7 +155,10 @@
             font-size: 12px;
         }
 
-        /* Table */
+        .btn-danger:hover {
+            background: rgba(255,68,68,0.4);
+        }
+
         .table-wrapper {
             overflow-x: auto;
         }
@@ -183,7 +181,6 @@
             border-bottom: 1px solid rgba(255,255,255,0.05);
         }
 
-        /* Search */
         .search-box {
             display: flex;
             gap: 12px;
@@ -205,7 +202,6 @@
             color: rgba(255,255,255,0.4);
         }
 
-        /* Modal */
         .modal {
             display: none;
             position: fixed;
@@ -284,7 +280,6 @@
             margin-top: 24px;
         }
 
-        /* Toast */
         .toast {
             position: fixed;
             bottom: 30px;
@@ -313,7 +308,6 @@
             }
         }
 
-        /* Stats */
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -355,6 +349,13 @@
         .level-or { background: #FFD700; color: #0D0D14; }
         .level-platine { background: #E5E4E2; color: #0D0D14; }
 
+        .scan-result {
+            background: rgba(26, 122, 94, 0.2);
+            border-radius: 16px;
+            padding: 12px;
+            margin-top: 12px;
+        }
+
         @media (max-width: 768px) {
             body { padding: 16px; }
             .card { padding: 16px; }
@@ -376,9 +377,8 @@
             <button class="tab-btn" data-tab="history">📜 Historique</button>
         </div>
 
-        <!-- Dashboard -->
         <div id="tab-dashboard" class="tab-pane active">
-            <div class="stats-grid" id="statsGrid">
+            <div class="stats-grid">
                 <div class="stat-card">
                     <div class="stat-value" id="totalMembers">-</div>
                     <div class="stat-label">Membres</div>
@@ -399,7 +399,7 @@
                 </div>
                 <div class="search-box">
                     <input type="text" id="scanMemberInput" placeholder="ID du client ou scanner le QR code...">
-                    <button class="btn-primary" onclick="processScan()">🔍 Scanner</button>
+                    <button class="btn-primary" id="scanBtn">🔍 Scanner</button>
                 </div>
                 <div id="scanResult"></div>
             </div>
@@ -412,15 +412,14 @@
             </div>
         </div>
 
-        <!-- Membres -->
         <div id="tab-members" class="tab-pane">
             <div class="card">
                 <div class="card-header">
                     <div class="card-title">👥 Liste des membres</div>
-                    <button class="btn-primary" onclick="openMemberModal()">+ Nouveau client</button>
+                    <button class="btn-primary" id="newMemberBtn">+ Nouveau client</button>
                 </div>
                 <div class="search-box">
-                    <input type="text" id="memberSearch" placeholder="Rechercher par nom, email ou téléphone..." onkeyup="filterMembers()">
+                    <input type="text" id="memberSearch" placeholder="Rechercher par nom, email ou téléphone...">
                 </div>
                 <div class="table-wrapper">
                     <table id="membersTable">
@@ -433,35 +432,37 @@
             </div>
         </div>
 
-        <!-- Produits -->
         <div id="tab-products" class="tab-pane">
             <div class="card">
                 <div class="card-header">
                     <div class="card-title">⚙️ Règles de tampons (produits)</div>
-                    <button class="btn-primary" onclick="openProductModal()">+ Ajouter un produit</button>
+                    <button class="btn-primary" id="newProductBtn">+ Ajouter un produit</button>
                 </div>
                 <div class="table-wrapper">
                     <table id="productsTable">
-                        <thead><tr><th>Nom</th><th>Description</th><th>Tampons requis</th><th>Niveau min</th><th>Statut</th></tr></thead>
+                        <thead>
+                            <tr><th>Nom</th><th>Description</th><th>Tampons requis</th><th>Niveau min</th><th>Statut</th></tr>
+                        </thead>
                         <tbody id="productsTableBody"></tbody>
                     </table>
                 </div>
             </div>
         </div>
 
-        <!-- Historique -->
         <div id="tab-history" class="tab-pane">
             <div class="card">
                 <div class="card-header">
                     <div class="card-title">📜 Historique des transactions</div>
-                    <button class="btn-secondary" onclick="exportHistory()">📎 Exporter CSV</button>
+                    <button class="btn-secondary" id="exportBtn">📎 Exporter CSV</button>
                 </div>
                 <div class="search-box">
-                    <input type="text" id="historySearch" placeholder="Rechercher..." onkeyup="filterHistory()">
+                    <input type="text" id="historySearch" placeholder="Rechercher...">
                 </div>
                 <div class="table-wrapper">
                     <table id="historyTable">
-                        <thead><tr><th>Date</th><th>Client</th><th>Action</th><th>Détails</th></tr></thead>
+                        <thead>
+                            <tr><th>Date</th><th>Client</th><th>Action</th><th>Détails</th></tr>
+                        </thead>
                         <tbody id="historyTableBody"></tbody>
                     </table>
                 </div>
@@ -469,7 +470,6 @@
         </div>
     </div>
 
-    <!-- Modal Membre -->
     <div id="memberModal" class="modal">
         <div class="modal-content">
             <h3>➕ Nouveau client</h3>
@@ -477,12 +477,14 @@
                 <div class="form-group"><label>Nom complet *</label><input type="text" id="memberName" required></div>
                 <div class="form-group"><label>Email</label><input type="email" id="memberEmail"></div>
                 <div class="form-group"><label>Téléphone</label><input type="tel" id="memberPhone"></div>
-                <div class="modal-actions"><button type="button" class="btn-secondary" onclick="closeMemberModal()">Annuler</button><button type="submit" class="btn-primary">Créer</button></div>
+                <div class="modal-actions">
+                    <button type="button" class="btn-secondary" id="closeMemberModalBtn">Annuler</button>
+                    <button type="submit" class="btn-primary">Créer</button>
+                </div>
             </form>
         </div>
     </div>
 
-    <!-- Modal Produit -->
     <div id="productModal" class="modal">
         <div class="modal-content">
             <h3>➕ Ajouter un produit</h3>
@@ -490,9 +492,22 @@
                 <div class="form-group"><label>Nom du produit *</label><input type="text" id="productName" required></div>
                 <div class="form-group"><label>Description</label><textarea id="productDescription"></textarea></div>
                 <div class="form-group"><label>Nombre de tampons requis *</label><input type="number" id="productStamps" value="10" required></div>
-                <div class="form-group"><label>Niveau minimum requis</label><select id="productLevel"><option value="bronze">Bronze</option><option value="argent">Argent</option><option value="or">Or</option><option value="platine">Platine</option></select></div>
-                <div class="form-group checkbox-group"><input type="checkbox" id="productActive" checked><label>Actif (visible dans QR produits)</label></div>
-                <div class="modal-actions"><button type="button" class="btn-secondary" onclick="closeProductModal()">Annuler</button><button type="submit" class="btn-primary">Ajouter</button></div>
+                <div class="form-group"><label>Niveau minimum requis</label>
+                    <select id="productLevel">
+                        <option value="bronze">Bronze</option>
+                        <option value="argent">Argent</option>
+                        <option value="or">Or</option>
+                        <option value="platine">Platine</option>
+                    </select>
+                </div>
+                <div class="form-group checkbox-group">
+                    <input type="checkbox" id="productActive" checked>
+                    <label>Actif (visible dans QR produits)</label>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn-secondary" id="closeProductModalBtn">Annuler</button>
+                    <button type="submit" class="btn-primary">Ajouter</button>
+                </div>
             </form>
         </div>
     </div>
@@ -506,32 +521,23 @@
         let allProducts = [];
         let allTransactions = [];
 
-        // ========== INIT ==========
-        async function init() {
-            await Promise.all([loadMembers(), loadProducts(), loadTransactions(), loadStats()]);
-            setupTabs();
-            checkURLParams();
+        // Fonctions utilitaires
+        function escapeHtml(str) { 
+            if (!str) return ''; 
+            return str.replace(/[&<>]/g, function(m) { 
+                if (m === '&') return '&amp;'; 
+                if (m === '<') return '&lt;'; 
+                if (m === '>') return '&gt;'; 
+                return m; 
+            }); 
         }
 
-        function setupTabs() {
-            document.querySelectorAll('.tab-btn').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    const tabId = btn.dataset.tab;
-                    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-                    btn.classList.add('active');
-                    document.querySelectorAll('.tab-pane').forEach(pane => pane.classList.remove('active'));
-                    document.getElementById(`tab-${tabId}`).classList.add('active');
-                });
-            });
-        }
-
-        function checkURLParams() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const scanMember = urlParams.get('scan');
-            const ruleId = urlParams.get('rule');
-            if (scanMember && ruleId) {
-                processDirectScan(scanMember, ruleId);
-            }
+        function showToast(msg, isError = false) {
+            const toast = document.createElement('div');
+            toast.className = 'toast' + (isError ? ' error' : '');
+            toast.innerText = msg;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
         }
 
         // ========== MEMBRES ==========
@@ -547,26 +553,33 @@
             if (!tbody) return;
             tbody.innerHTML = allMembers.map(m => `
                 <tr>
-                    <td>${escapeHtml(m.nom)}</td><td>${escapeHtml(m.email || '-')}</td><td>${escapeHtml(m.telephone || '-')}</td>
+                    <td>${escapeHtml(m.nom)}</td>
+                    <td>${escapeHtml(m.email || '-')}</td>
+                    <td>${escapeHtml(m.telephone || '-')}</td>
                     <td><span class="level-badge level-${m.niveau}">${m.niveau}</span></td>
                     <td>${m.tampons || 0}</td>
-                    <td><button class="btn-danger" onclick="addManualStamps('${m.id}')">➕ Tampon</button></td>
+                    <td><button class="btn-danger" onclick="window.addManualStamps('${m.id}')">➕ Tampon</button></td>
                 </tr>
             `).join('');
         }
 
-        function filterMembers() {
+        window.filterMembers = function() {
             const search = document.getElementById('memberSearch').value.toLowerCase();
             const filtered = allMembers.filter(m => m.nom?.toLowerCase().includes(search) || m.email?.toLowerCase().includes(search) || m.telephone?.includes(search));
             const tbody = document.getElementById('membersTableBody');
             tbody.innerHTML = filtered.map(m => `
-                <tr><td>${escapeHtml(m.nom)}</td><td>${escapeHtml(m.email || '-')}</td><td>${escapeHtml(m.telephone || '-')}</td>
-                <td><span class="level-badge level-${m.niveau}">${m.niveau}</span></td><td>${m.tampons || 0}</td>
-                <td><button class="btn-danger" onclick="addManualStamps('${m.id}')">➕ Tampon</button></td></tr>
+                <tr>
+                    <td>${escapeHtml(m.nom)}</td>
+                    <td>${escapeHtml(m.email || '-')}</td>
+                    <td>${escapeHtml(m.telephone || '-')}</td>
+                    <td><span class="level-badge level-${m.niveau}">${m.niveau}</span></td>
+                    <td>${m.tampons || 0}</td>
+                    <td><button class="btn-danger" onclick="window.addManualStamps('${m.id}')">➕ Tampon</button></td>
+                </tr>
             `).join('');
         }
 
-        async function addManualStamps(memberId) {
+        window.addManualStamps = async function(memberId) {
             const count = prompt("Nombre de tampons à ajouter (1 par défaut):", "1");
             const c = parseInt(count) || 1;
             const { data: member } = await supabase.from('membres').select('*').eq('id', memberId).single();
@@ -582,6 +595,7 @@
                 showToast(`✅ ${c} tampon(s) ajouté(s)`);
                 await loadMembers();
                 await loadStats();
+                await loadTransactions();
             }
         }
 
@@ -611,7 +625,7 @@
             }
         }
 
-        async function addProduct(event) {
+        window.addProduct = async function(event) {
             event.preventDefault();
             const nom = document.getElementById('productName').value;
             const description = document.getElementById('productDescription').value;
@@ -623,7 +637,7 @@
                 if (error) throw error;
                 showToast('✅ Produit ajouté');
                 closeProductModal();
-                await loadProducts(); // ← Rafraîchissement immédiat
+                await loadProducts();
                 document.getElementById('productForm').reset();
             } catch (err) {
                 showToast('❌ Erreur: ' + err.message, true);
@@ -651,14 +665,21 @@
             `).join('');
         }
 
-        function filterHistory() {
+        window.filterHistory = function() {
             const search = document.getElementById('historySearch').value.toLowerCase();
             const filtered = allTransactions.filter(t => (t.membres?.nom || '').toLowerCase().includes(search) || t.type.toLowerCase().includes(search));
             const tbody = document.getElementById('historyTableBody');
-            tbody.innerHTML = filtered.map(t => `<tr><td>${new Date(t.created_at).toLocaleDateString()}</td><td>${escapeHtml(t.membres?.nom || 'Inconnu')}</td><td>${t.type}</td><td>${escapeHtml(t.details || '-')}</td></tr>`).join('');
+            tbody.innerHTML = filtered.map(t => `
+                <tr>
+                    <td>${new Date(t.created_at).toLocaleDateString()}</td>
+                    <td>${escapeHtml(t.membres?.nom || 'Inconnu')}</td>
+                    <td>${t.type}</td>
+                    <td>${escapeHtml(t.details || '-')}</td>
+                </tr>
+            `).join('');
         }
 
-        function exportHistory() {
+        window.exportHistory = function() {
             let csv = "Date,Client,Action,Détails\n";
             allTransactions.forEach(t => {
                 csv += `${new Date(t.created_at).toLocaleDateString()},"${t.membres?.nom || 'Inconnu'}","${t.type}","${t.details || ''}"\n`;
@@ -681,16 +702,21 @@
             document.getElementById('totalMembers').innerText = members || 0;
             document.getElementById('totalTransactions').innerText = transactions || 0;
             document.getElementById('totalStampsGiven').innerText = totalStamps;
+            
             const levels = { bronze: 0, argent: 0, or: 0, platine: 0 };
             allMembers.forEach(m => levels[m.niveau]++);
             document.getElementById('levelDistribution').innerHTML = `
                 <div style="display:flex; gap:16px; flex-wrap:wrap;">
-                    <div>🥉 Bronze: ${levels.bronze}</div><div>🥈 Argent: ${levels.argent}</div><div>🥇 Or: ${levels.or}</div><div>💎 Platine: ${levels.platine}</div>
-                </div>`;
+                    <div>🥉 Bronze: ${levels.bronze}</div>
+                    <div>🥈 Argent: ${levels.argent}</div>
+                    <div>🥇 Or: ${levels.or}</div>
+                    <div>💎 Platine: ${levels.platine}</div>
+                </div>
+            `;
         }
 
         // ========== SCAN ==========
-        async function processScan() {
+        window.processScan = async function() {
             const input = document.getElementById('scanMemberInput').value;
             if (!input) { showToast("Entrez un ID client", true); return; }
             const member = allMembers.find(m => m.id === input || m.telephone === input || m.email === input);
@@ -699,7 +725,7 @@
             if (ruleId) {
                 await processDirectScan(member.id, ruleId);
             } else {
-                await addManualStamps(member.id);
+                await window.addManualStamps(member.id);
             }
         }
 
@@ -724,8 +750,9 @@
             showToast(`✅ 1 tampon pour ${member.nom} (${rule.nom})`);
             await loadMembers();
             await loadStats();
+            await loadTransactions();
             document.getElementById('scanMemberInput').value = '';
-            document.getElementById('scanResult').innerHTML = `<div style="background:#1A7A5E20; padding:12px; border-radius:16px;">✅ ${member.nom} a reçu 1 tampon pour ${rule.nom}</div>`;
+            document.getElementById('scanResult').innerHTML = `<div class="scan-result">✅ ${member.nom} a reçu 1 tampon pour ${rule.nom}</div>`;
         }
 
         // ========== MODALS ==========
@@ -734,33 +761,62 @@
         function openProductModal() { document.getElementById('productModal').classList.add('active'); }
         function closeProductModal() { document.getElementById('productModal').classList.remove('active'); }
 
-        document.getElementById('memberForm')?.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const nom = document.getElementById('memberName').value;
-            const email = document.getElementById('memberEmail').value;
-            const telephone = document.getElementById('memberPhone').value;
-            const { error } = await supabase.from('membres').insert([{ nom, email, telephone, niveau: 'bronze', tampons: 0 }]);
-            if (error) { showToast("Erreur: " + error.message, true); return; }
-            showToast("✅ Client ajouté");
-            closeMemberModal();
+        // ========== INITIALISATION ==========
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Chargement des données
             await loadMembers();
+            await loadProducts();
+            await loadTransactions();
             await loadStats();
-            document.getElementById('memberForm').reset();
+
+            // Tabs
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const tabId = btn.dataset.tab;
+                    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    document.querySelectorAll('.tab-pane').forEach(pane => pane.classList.remove('active'));
+                    document.getElementById(`tab-${tabId}`).classList.add('active');
+                });
+            });
+
+            // Boutons
+            document.getElementById('scanBtn')?.addEventListener('click', window.processScan);
+            document.getElementById('newMemberBtn')?.addEventListener('click', openMemberModal);
+            document.getElementById('newProductBtn')?.addEventListener('click', openProductModal);
+            document.getElementById('exportBtn')?.addEventListener('click', window.exportHistory);
+            document.getElementById('closeMemberModalBtn')?.addEventListener('click', closeMemberModal);
+            document.getElementById('closeProductModalBtn')?.addEventListener('click', closeProductModal);
+            
+            // Recherches
+            document.getElementById('memberSearch')?.addEventListener('keyup', window.filterMembers);
+            document.getElementById('historySearch')?.addEventListener('keyup', window.filterHistory);
+            
+            // Formulaires
+            document.getElementById('memberForm')?.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const nom = document.getElementById('memberName').value;
+                const email = document.getElementById('memberEmail').value;
+                const telephone = document.getElementById('memberPhone').value;
+                const { error } = await supabase.from('membres').insert([{ nom, email, telephone, niveau: 'bronze', tampons: 0 }]);
+                if (error) { showToast("Erreur: " + error.message, true); return; }
+                showToast("✅ Client ajouté");
+                closeMemberModal();
+                await loadMembers();
+                await loadStats();
+                document.getElementById('memberForm').reset();
+            });
+            
+            document.getElementById('productForm')?.addEventListener('submit', window.addProduct);
+
+            // Vérifier les paramètres URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const scanMember = urlParams.get('scan');
+            const ruleId = urlParams.get('rule');
+            if (scanMember && ruleId && scanMember !== 'PRODUIT') {
+                setTimeout(() => processDirectScan(scanMember, ruleId), 1000);
+            }
         });
-
-        document.getElementById('productForm')?.addEventListener('submit', addProduct);
-
-        function showToast(msg, isError = false) {
-            const toast = document.createElement('div');
-            toast.className = 'toast' + (isError ? ' error' : '');
-            toast.innerText = msg;
-            document.body.appendChild(toast);
-            setTimeout(() => toast.remove(), 3000);
-        }
-
-        function escapeHtml(str) { if (!str) return ''; return str.replace(/[&<>]/g, function(m) { if (m === '&') return '&amp;'; if (m === '<') return '&lt;'; if (m === '>') return '&gt;'; return m; }); }
-
-        init();
     </script>
 </body>
 </html>
