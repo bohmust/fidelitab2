@@ -81,19 +81,20 @@ ALTER TABLE cartes_tampons   ENABLE ROW LEVEL SECURITY;
 ALTER TABLE transactions     ENABLE ROW LEVEL SECURITY;
 ALTER TABLE regles_tampons   ENABLE ROW LEVEL SECURITY;
 
--- Règles tampons : lecture publique
-CREATE POLICY "regles_publiques"    ON regles_tampons  FOR SELECT TO anon USING (actif = TRUE);
+-- Membres : lecture + inscription publiques, modification admin seulement
+CREATE POLICY "membres_select"      ON membres         FOR SELECT TO anon        USING (TRUE);
+CREATE POLICY "membres_insert"      ON membres         FOR INSERT TO anon        WITH CHECK (TRUE);
+CREATE POLICY "membres_update"      ON membres         FOR UPDATE TO authenticated USING (TRUE);
 
--- Membres : inscription + lecture + mise à jour publique
-CREATE POLICY "membres_select"      ON membres         FOR SELECT TO anon USING (TRUE);
-CREATE POLICY "membres_insert"      ON membres         FOR INSERT TO anon WITH CHECK (TRUE);
-CREATE POLICY "membres_update"      ON membres         FOR UPDATE TO anon USING (TRUE);
+-- Cartes tampons : lecture publique, écriture admin seulement
+CREATE POLICY "cartes_select"       ON cartes_tampons  FOR SELECT TO anon        USING (TRUE);
+CREATE POLICY "cartes_insert"       ON cartes_tampons  FOR INSERT TO authenticated WITH CHECK (TRUE);
+CREATE POLICY "cartes_update"       ON cartes_tampons  FOR UPDATE TO authenticated USING (TRUE);
 
--- Cartes tampons : CRUD public
-CREATE POLICY "cartes_select"       ON cartes_tampons  FOR SELECT TO anon USING (TRUE);
-CREATE POLICY "cartes_insert"       ON cartes_tampons  FOR INSERT TO anon WITH CHECK (TRUE);
-CREATE POLICY "cartes_update"       ON cartes_tampons  FOR UPDATE TO anon USING (TRUE);
+-- Transactions : admin seulement (lecture + écriture)
+CREATE POLICY "transactions_select" ON transactions    FOR SELECT TO authenticated USING (TRUE);
+CREATE POLICY "transactions_insert" ON transactions    FOR INSERT TO authenticated WITH CHECK (TRUE);
 
--- Transactions : lecture + insertion publique
-CREATE POLICY "transactions_select" ON transactions    FOR SELECT TO anon USING (TRUE);
-CREATE POLICY "transactions_insert" ON transactions    FOR INSERT TO anon WITH CHECK (TRUE);
+-- Règles tampons : lecture publique (actives seulement), gestion complète admin
+CREATE POLICY "regles_publiques"    ON regles_tampons  FOR SELECT TO anon        USING (actif = TRUE);
+CREATE POLICY "regles_admin"        ON regles_tampons  FOR ALL    TO authenticated USING (TRUE);

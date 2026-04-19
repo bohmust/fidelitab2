@@ -1,0 +1,933 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FidéliTab — Admin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@400;600;700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --ink:#0D0D14;--ink2:#5A5A72;--ink3:#9898B0;
+  --gold:#C9922A;--gold-l:#FFF8EC;--gold-d:#8A6018;
+  --jade:#1A7A5E;--jade-l:#E8F5F1;
+  --rose:#C94040;--rose-l:#FDF0F0;
+  --surface:#F7F7F5;--card:#FFFFFF;
+  --border:#EBEBEB;--border2:#F3F3F1;
+  --radius:16px;
+  --shadow:0 2px 12px rgba(13,13,20,.07);
+  --shadow-lg:0 8px 32px rgba(13,13,20,.12);
+}
+html,body{height:100%;background:var(--surface);font-family:'DM Sans',sans-serif;color:var(--ink);-webkit-font-smoothing:antialiased}
+
+/* ── TOPBAR ── */
+.topbar{
+  background:var(--ink);
+  padding:0 20px;
+  display:flex;align-items:center;justify-content:space-between;
+  height:60px;gap:12px;flex-wrap:wrap;
+  position:sticky;top:0;z-index:50;
+}
+.logo-wrap{display:flex;align-items:center;gap:10px}
+.logo{
+  width:34px;height:34px;border-radius:10px;
+  background:linear-gradient(135deg,var(--gold) 0%,#E8B450 100%);
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Fraunces',serif;font-size:16px;font-weight:700;color:var(--ink);
+  flex-shrink:0;
+}
+.logo-text{font-family:'Fraunces',serif;font-size:15px;font-weight:600;color:#fff}
+.logo-sub{font-size:11px;color:rgba(255,255,255,.4);margin-top:1px}
+nav{display:flex;gap:2px}
+.nav-btn{
+  padding:7px 13px;border-radius:8px;border:none;
+  background:transparent;color:rgba(255,255,255,.5);
+  font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;
+  cursor:pointer;transition:all .15s ease;white-space:nowrap;
+}
+.nav-btn:hover{color:rgba(255,255,255,.8);background:rgba(255,255,255,.08)}
+.nav-btn.active{background:rgba(255,255,255,.12);color:#fff}
+
+/* ── SCAN FAB ── */
+.scan-fab{
+  position:fixed;bottom:24px;right:20px;
+  width:58px;height:58px;border-radius:50%;
+  background:linear-gradient(135deg,var(--jade) 0%,#228C6E 100%);
+  border:none;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  font-size:22px;
+  box-shadow:0 4px 20px rgba(26,122,94,.35);
+  z-index:100;transition:transform .15s ease;
+}
+.scan-fab:hover{transform:scale(1.05)}
+.scan-fab:active{transform:scale(.95)}
+
+/* ── MAIN ── */
+.main{max-width:980px;margin:0 auto;padding:22px 20px 100px}
+
+/* ── CARDS / PANELS ── */
+.panel{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:var(--radius);padding:20px;
+  margin-bottom:16px;box-shadow:var(--shadow);
+}
+.panel-title{
+  font-family:'Fraunces',serif;font-size:11px;font-weight:600;
+  color:var(--ink2);text-transform:uppercase;letter-spacing:.08em;
+  margin-bottom:16px;
+}
+
+/* ── KPI GRID ── */
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
+.kpi{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:var(--radius);padding:16px;
+  box-shadow:var(--shadow);
+}
+.kpi-label{font-size:12px;color:var(--ink2);margin-bottom:6px}
+.kpi-value{font-family:'Fraunces',serif;font-size:26px;font-weight:700;color:var(--ink)}
+.kpi-gold .kpi-value{color:var(--gold-d)}
+.kpi-jade .kpi-value{color:var(--jade)}
+
+/* ── SCAN BANNER ── */
+.scan-banner{
+  background:var(--ink);border-radius:var(--radius);
+  padding:18px 20px;margin-bottom:20px;
+  display:flex;align-items:center;justify-content:space-between;
+  gap:14px;flex-wrap:wrap;
+  position:relative;overflow:hidden;
+}
+.scan-banner::before{
+  content:'';position:absolute;top:-40px;right:-20px;
+  width:140px;height:140px;border-radius:50%;
+  background:radial-gradient(circle,rgba(201,146,42,.15) 0%,transparent 65%);
+}
+.scan-banner-text .t1{font-family:'Fraunces',serif;font-size:15px;font-weight:600;color:#fff}
+.scan-banner-text .t2{font-size:12px;color:rgba(255,255,255,.4);margin-top:3px}
+.btn-scan{
+  padding:10px 18px;border-radius:10px;border:none;
+  background:linear-gradient(135deg,var(--jade) 0%,#228C6E 100%);
+  font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;
+  color:#fff;cursor:pointer;white-space:nowrap;
+  box-shadow:0 2px 10px rgba(26,122,94,.3);
+}
+
+/* ── GRID 2 ── */
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+
+/* ── TABLE / ROWS ── */
+.table-header{
+  display:grid;padding:10px 14px;
+  font-size:11px;font-weight:600;color:var(--ink3);
+  text-transform:uppercase;letter-spacing:.06em;
+  border-bottom:1px solid var(--border2);
+}
+.member-header{grid-template-columns:1fr 110px 90px 60px 80px}
+.member-row{
+  display:grid;padding:12px 14px;
+  border-bottom:1px solid var(--border2);
+  align-items:center;cursor:pointer;
+  border-radius:10px;transition:background .1s ease;
+}
+.member-row:hover{background:var(--surface)}
+.member-row:last-child{border-bottom:none}
+.txn-row{
+  display:flex;gap:10px;align-items:center;
+  padding:10px 0;border-bottom:1px solid var(--border2);
+  cursor:pointer;
+}
+.txn-row:last-child{border-bottom:none}
+
+/* ── AVATAR ── */
+.avatar{
+  width:34px;height:34px;border-radius:10px;
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Fraunces',serif;font-weight:700;font-size:13px;flex-shrink:0;
+}
+.txn-dot{
+  width:30px;height:30px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-weight:700;font-size:12px;flex-shrink:0;
+}
+
+/* ── TIER BADGES ── */
+.tier{
+  font-size:10px;font-weight:600;
+  padding:3px 8px;border-radius:20px;white-space:nowrap;
+}
+.tier-bronze{background:#FFF0E0;color:#8A5A20}
+.tier-argent{background:#F0F0F0;color:#555}
+.tier-or{background:#FFF0C0;color:#7A5010}
+.tier-platine{background:#EEEDFE;color:#3C3489}
+
+/* ── INPUTS ── */
+.inp{
+  width:100%;padding:12px 14px;
+  border:1.5px solid var(--border);border-radius:12px;
+  font-family:'DM Sans',sans-serif;font-size:14px;
+  background:var(--card);color:var(--ink);-webkit-appearance:none;
+  transition:border-color .2s,box-shadow .2s;
+}
+.inp:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 3px rgba(201,146,42,.1)}
+.flabel{font-size:11px;font-weight:600;color:var(--ink2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;display:block}
+
+/* ── BUTTONS ── */
+.btn-jade{padding:10px 18px;border-radius:10px;border:none;background:var(--jade);color:#fff;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer}
+.btn-gold{padding:10px 18px;border-radius:10px;border:none;background:var(--gold);color:#fff;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer}
+.btn-ink{padding:10px 18px;border-radius:10px;border:none;background:var(--ink);color:#fff;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer}
+.btn-ghost{padding:9px 16px;border-radius:10px;border:1.5px solid var(--border);background:transparent;color:var(--ink2);font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer}
+.btn-rose{padding:7px 12px;border-radius:8px;border:none;background:var(--rose-l);color:var(--rose);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;cursor:pointer}
+.btn-stamp{
+  width:100%;padding:11px 16px;border-radius:12px;border:none;
+  background:linear-gradient(135deg,var(--jade) 0%,#228C6E 100%);
+  color:#fff;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;
+  cursor:pointer;margin-top:8px;text-align:center;
+  box-shadow:0 2px 8px rgba(26,122,94,.25);
+}
+.btn-remove{padding:8px 14px;border-radius:10px;border:none;background:var(--rose-l);color:var(--rose);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;cursor:pointer;margin-top:6px}
+
+/* ── STAMP CARDS (member detail) ── */
+.stamp-card-d{
+  border:1px solid var(--border);border-radius:14px;
+  padding:14px;margin-bottom:10px;
+  background:var(--card);
+}
+.stamp-card-d.full{
+  background:linear-gradient(135deg,#FFFBF2 0%,#FFF5E0 100%);
+  border-color:rgba(201,146,42,.3);
+}
+.sdots{display:flex;gap:5px;flex-wrap:wrap;margin:10px 0}
+.sdot{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700}
+.sdot.on{background:linear-gradient(135deg,var(--jade),#228C6E);border:none;color:#fff;box-shadow:0 2px 5px rgba(26,122,94,.3)}
+.sdot.off{background:var(--surface);border:1.5px dashed var(--border)}
+.full-reward{background:linear-gradient(135deg,var(--gold-l),#FFF0CC);border:1px solid rgba(201,146,42,.25);border-radius:10px;padding:10px 12px;font-size:12px;font-weight:600;color:var(--gold-d);margin-top:8px}
+
+/* ── MEMBER DETAIL HEADER ── */
+.member-hero{
+  background:var(--ink);border-radius:var(--radius);
+  padding:20px;margin-bottom:16px;
+  position:relative;overflow:hidden;
+}
+.member-hero::before{
+  content:'';position:absolute;top:-30px;right:-20px;
+  width:120px;height:120px;border-radius:50%;
+  background:radial-gradient(circle,rgba(201,146,42,.15) 0%,transparent 65%);
+}
+.member-hero-av{
+  width:50px;height:50px;border-radius:14px;
+  background:linear-gradient(135deg,var(--gold),#E8B450);
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Fraunces',serif;font-weight:700;font-size:20px;color:var(--ink);
+  flex-shrink:0;
+}
+.member-hero-name{font-family:'Fraunces',serif;font-size:19px;font-weight:700;color:#fff;letter-spacing:-.01em}
+.member-hero-sub{font-size:12px;color:rgba(255,255,255,.4);margin-top:3px}
+.member-hero-pts{font-family:'Fraunces',serif;font-size:28px;font-weight:700;color:var(--gold)}
+.member-hero-pts-label{font-size:12px;color:rgba(255,255,255,.35);margin-top:2px}
+
+/* ── FORM GRID ── */
+.form-grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
+
+/* ── EMOJI PICKER ── */
+.emoji-picker{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px}
+.emoji-btn{width:36px;height:36px;border-radius:8px;border:1.5px solid var(--border);background:var(--surface);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.emoji-btn.sel{border-color:var(--gold);background:var(--gold-l)}
+
+/* ── RULE ROW ── */
+.rule-row{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--border2)}
+.rule-row:last-child{border-bottom:none}
+
+/* ── SCANNER MODAL ── */
+.scanner-modal{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:200;display:none;flex-direction:column}
+.scanner-header{background:var(--ink);padding:16px 20px;display:flex;align-items:center;justify-content:space-between}
+.scanner-title{font-family:'Fraunces',serif;font-size:15px;font-weight:600;color:#fff}
+.scanner-close{background:rgba(255,255,255,.1);border:none;color:#fff;padding:8px 14px;border-radius:8px;cursor:pointer;font-size:13px;font-family:'DM Sans',sans-serif}
+.scanner-body{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:20px}
+.scan-viewport{position:relative;width:100%;max-width:320px;background:#000;border-radius:20px;overflow:hidden;aspect-ratio:1}
+.scan-video{width:100%;height:100%;object-fit:cover;display:block}
+.scan-canvas{display:none}
+.scan-overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center}
+.scan-ring{width:200px;height:200px;position:relative}
+.sc{position:absolute;width:22px;height:22px;border-color:var(--gold);border-style:solid}
+.sc.tl{top:-2px;left:-2px;border-width:3px 0 0 3px;border-radius:6px 0 0 0}
+.sc.tr{top:-2px;right:-2px;border-width:3px 3px 0 0;border-radius:0 6px 0 0}
+.sc.bl{bottom:-2px;left:-2px;border-width:0 0 3px 3px;border-radius:0 0 0 6px}
+.sc.br{bottom:-2px;right:-2px;border-width:0 3px 3px 0;border-radius:0 0 6px 0}
+.scan-line{position:absolute;left:10px;right:10px;height:2px;background:linear-gradient(to right,transparent,var(--gold),transparent);animation:scanLine 1.8s linear infinite}
+@keyframes scanLine{0%{top:10px}100%{top:calc(100% - 10px)}}
+.scan-hint{color:rgba(255,255,255,.6);font-size:14px;text-align:center}
+
+/* ── CONFIRM MODAL ── */
+.confirm-modal{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:300;display:none;align-items:flex-end}
+.confirm-sheet{background:var(--card);border-radius:22px 22px 0 0;width:100%;padding:24px 20px 32px;animation:slideUp .25s ease}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:none}}
+
+/* ── TOAST ── */
+.toast-el{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:12px 20px;border-radius:12px;font-size:14px;font-weight:500;z-index:400;white-space:nowrap;box-shadow:var(--shadow-lg);animation:fadeInUp .2s ease}
+@keyframes fadeInUp{from{opacity:0;transform:translate(-50%,10px)}to{opacity:1;transform:translate(-50%,0)}}
+
+/* ── CONFIRM DIALOG ── */
+.dialog-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:500;display:flex;align-items:center;justify-content:center;padding:20px;animation:fadeIn .2s ease}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.dialog-box{background:var(--card);border-radius:20px;padding:28px 24px;max-width:360px;width:100%;text-align:center;box-shadow:var(--shadow-lg)}
+
+/* ── RESPONSIVE ── */
+@media(max-width:640px){
+  .kpi-grid{grid-template-columns:1fr 1fr}
+  .grid2{grid-template-columns:1fr}
+  .member-header,.member-row{grid-template-columns:1fr 80px 70px}
+  .form-grid2{grid-template-columns:1fr}
+}
+
+/* ── LOGIN SCREEN ── */
+#loginScreen{position:fixed;inset:0;z-index:9999;background:var(--surface);display:flex;align-items:center;justify-content:center;padding:20px}
+.login-card{background:var(--card);border:1px solid var(--border);border-radius:24px;padding:36px 32px;width:100%;max-width:400px;box-shadow:var(--shadow-lg)}
+.login-logo{width:52px;height:52px;border-radius:14px;background:linear-gradient(135deg,var(--gold) 0%,#E8B450 100%);display:flex;align-items:center;justify-content:center;font-family:'Fraunces',serif;font-size:24px;font-weight:700;color:var(--ink);margin:0 auto 20px}
+.login-title{font-family:'Fraunces',serif;font-size:22px;font-weight:700;color:var(--ink);text-align:center;margin-bottom:6px}
+.login-sub{font-size:13px;color:var(--ink2);text-align:center;margin-bottom:28px}
+.login-err{font-size:13px;color:var(--rose);background:var(--rose-l);border-radius:10px;padding:10px 14px;margin-bottom:16px;display:none}
+.login-btn{width:100%;padding:14px;border-radius:12px;border:none;background:var(--ink);color:#fff;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:600;cursor:pointer;margin-top:8px;transition:opacity .15s}
+.login-btn:hover{opacity:.85}
+.login-btn:disabled{opacity:.5;cursor:not-allowed}
+</style>
+</head>
+<body>
+
+<div id="loginScreen">
+  <div class="login-card">
+    <div class="login-logo">F</div>
+    <div class="login-title">FidéliTab Admin</div>
+    <div class="login-sub">Connectez-vous pour accéder au panel</div>
+    <div class="login-err" id="loginErr"></div>
+    <div style="margin-bottom:14px">
+      <label class="flabel">Email</label>
+      <input class="inp" id="loginEmail" type="email" placeholder="admin@fidelitab.fr" autocomplete="username" onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <div style="margin-bottom:6px">
+      <label class="flabel">Mot de passe</label>
+      <input class="inp" id="loginPassword" type="password" placeholder="••••••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <button class="login-btn" id="loginBtn" onclick="doLogin()">Connexion</button>
+  </div>
+</div>
+
+<div class="topbar">
+  <div class="logo-wrap">
+    <div class="logo">F</div>
+    <div>
+      <div class="logo-text">FidéliTab</div>
+      <div class="logo-sub">Tabac Presse Grandclément</div>
+    </div>
+  </div>
+  <nav id="mainNav">
+    <button class="nav-btn active" data-tab="dashboard">Accueil</button>
+    <button class="nav-btn" data-tab="members">Membres</button>
+    <button class="nav-btn" data-tab="history">Historique</button>
+    <button class="nav-btn" data-tab="settings">⚙ Produits</button>
+  </nav>
+  <button class="nav-btn" onclick="doLogout()" style="color:rgba(255,255,255,.35);margin-left:8px;font-size:12px">↩ Déconnexion</button>
+</div>
+
+<button class="scan-fab" id="scanFab" title="Scanner un client">📷</button>
+<div class="main" id="mainContent"></div>
+
+<!-- SCANNER -->
+<div class="scanner-modal" id="scannerModal">
+  <div class="scanner-header">
+    <div class="scanner-title">📷 Scanner le QR du client</div>
+    <button class="scanner-close" id="scanClose">✕ Fermer</button>
+  </div>
+  <div class="scanner-body">
+    <div class="scan-viewport">
+      <video class="scan-video" id="scanVideo" playsinline muted autoplay></video>
+      <canvas class="scan-canvas" id="scanCanvas"></canvas>
+      <div class="scan-overlay">
+        <div class="scan-ring">
+          <div class="sc tl"></div><div class="sc tr"></div>
+          <div class="sc bl"></div><div class="sc br"></div>
+          <div class="scan-line"></div>
+        </div>
+      </div>
+    </div>
+    <div class="scan-hint" id="scanHint">Pointez vers le QR code du client</div>
+  </div>
+</div>
+
+<!-- CONFIRM STAMP -->
+<div class="confirm-modal" id="confirmModal">
+  <div class="confirm-sheet" id="confirmSheet"></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.min.js"></script>
+<script>
+const SUPABASE_URL = 'https://cgyvmrxpoofrnturffxl.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNneXZtcnhwb29mcm50dXJmZnhsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIzNjkxNjQsImV4cCI6MjA4Nzk0NTE2NH0.0JNkokFJOshJnzyrBOSbgrnyFHeLvA5pMaaL1jP8kq8';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// ── AUTH ──
+async function checkAuth(){
+  const{data:{session}}=await sb.auth.getSession();
+  if(!session)return false;
+  document.getElementById('loginScreen').remove();
+  return true;
+}
+
+async function doLogin(){
+  const email=document.getElementById('loginEmail').value.trim();
+  const pass=document.getElementById('loginPassword').value;
+  const btn=document.getElementById('loginBtn');
+  const errEl=document.getElementById('loginErr');
+  btn.disabled=true; btn.textContent='Connexion…'; errEl.style.display='none';
+  const{error}=await sb.auth.signInWithPassword({email,password:pass});
+  if(error){
+    errEl.textContent='Email ou mot de passe incorrect.';
+    errEl.style.display='block';
+    btn.disabled=false; btn.textContent='Connexion';
+    return;
+  }
+  document.getElementById('loginScreen').remove();
+  checkScanParams().then(handled=>{ if(!handled)loadData().then(render); });
+}
+
+async function doLogout(){
+  await sb.auth.signOut();
+  location.reload();
+}
+
+let members = [], rules = [], txns = [];
+let activeTab = 'dashboard';
+let selMemberId = null;
+let scanStream = null, scanRaf = null, scanActive = false;
+let selEmoji = '🛒';
+
+const TIERS = [[0,'bronze'],[500,'argent'],[1500,'or'],[3000,'platine']];
+function getTier(p){ for(let i=TIERS.length-1;i>=0;i--) if(p>=TIERS[i][0]) return TIERS[i][1]; return 'bronze'; }
+function tierLabel(t){ return {bronze:'Bronze',argent:'Argent',or:'Or',platine:'Platine'}[t]||''; }
+function ptColor(t){ return ['echange','recompense'].includes(t)?'var(--rose)':t==='bonus'?'var(--gold-d)':'var(--jade)'; }
+
+const avBg=['#FFF8EC','#E8F5F1','#FDF0F0','#EEEDFE','#F0F5FF'];
+const avFg=['#8A5A20','#1A7A5E','#C94040','#3C3489','#185FA5'];
+function avS(n){ const i=n.charCodeAt(0)%5; return `background:${avBg[i]};color:${avFg[i]}`; }
+function avI(n){ return n.split(' ').map(x=>x[0]).slice(0,2).join('').toUpperCase(); }
+
+function showToast(msg){
+  document.querySelectorAll('.toast-el').forEach(t=>t.remove());
+  const t=document.createElement('div');
+  t.className='toast-el'; t.textContent=msg;
+  document.body.appendChild(t);
+  setTimeout(()=>t.remove(),3000);
+}
+
+async function loadData(){
+  const[m,r,t]=await Promise.all([
+    sb.from('membres').select('*').order('cree_le',{ascending:false}),
+    sb.from('regles_tampons').select('*').eq('actif',true).order('ordre'),
+    sb.from('transactions').select('*').order('cree_le',{ascending:false}).limit(60)
+  ]);
+  members=m.data||[]; rules=r.data||[]; txns=t.data||[];
+}
+
+async function render(){
+  const el=document.getElementById('mainContent');
+  if(selMemberId){ await renderMemberDetail(selMemberId); return; }
+  if(activeTab==='dashboard'){ await loadData(); el.innerHTML=buildDashboard(); }
+  else if(activeTab==='members'){ await loadData(); el.innerHTML=buildMembers(); }
+  else if(activeTab==='history'){ el.innerHTML=buildHistory(); }
+  else if(activeTab==='settings'){ el.innerHTML=buildSettings(); renderRulesList(); }
+  else if(activeTab==='newmember'){ el.innerHTML=buildNewMember(); }
+}
+
+document.getElementById('mainNav').addEventListener('click',function(e){
+  const btn=e.target.closest('.nav-btn');
+  if(!btn)return;
+  activeTab=btn.dataset.tab; selMemberId=null;
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  render();
+});
+
+document.getElementById('mainContent').addEventListener('click',function(e){
+  const row=e.target.closest('[data-member-id]');
+  if(row){ selMemberId=row.getAttribute('data-member-id'); renderMemberDetail(selMemberId); }
+});
+
+// ── DASHBOARD ──
+function buildDashboard(){
+  const totPts=members.reduce((a,m)=>a+(m.points||0),0);
+  const tc={bronze:0,argent:0,or:0,platine:0};
+  members.forEach(m=>{ const t=getTier(m.points||0); tc[t]=(tc[t]||0)+1; });
+  const top3=[...members].sort((a,b)=>(b.points||0)-(a.points||0)).slice(0,3);
+  const recent=txns.slice(0,8);
+
+  const topHtml=top3.map((m,i)=>`
+    <div data-member-id="${m.id}" style="display:flex;gap:10px;align-items:center;padding:12px 0;border-bottom:1px solid var(--border2);cursor:pointer" onmouseover="this.style.opacity='.8'" onmouseout="this.style.opacity='1'">
+      <div style="font-family:'Fraunces',serif;font-size:15px;font-weight:700;color:var(--ink3);width:20px">${i+1}</div>
+      <div class="avatar" style="${avS(m.nom)}">${avI(m.nom)}</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:13px;font-weight:600;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">${m.nom}</div>
+        <span class="tier tier-${getTier(m.points||0)}">${tierLabel(getTier(m.points||0))}</span>
+      </div>
+      <div style="font-family:'Fraunces',serif;font-size:15px;font-weight:700;color:var(--gold-d)">${(m.points||0).toLocaleString('fr-FR')}<span style="font-size:11px;color:var(--ink3);font-family:'DM Sans',sans-serif;font-weight:400"> pts</span></div>
+    </div>`).join('');
+
+  const recentHtml=recent.map(t=>{
+    const m=members.find(x=>x.id===t.membre_id);
+    return `<div class="txn-row">
+      <div class="txn-dot" style="background:${t.type==='echange'||t.type==='recompense'?'var(--rose-l)':t.type==='bonus'?'var(--gold-l)':'var(--jade-l)'};color:${ptColor(t.type)}">${t.type==='echange'||t.type==='recompense'?'−':t.type==='bonus'?'★':'+'}</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:13px;font-weight:500;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">${m?.nom||'—'}</div>
+        <div style="font-size:12px;color:var(--ink2)">${t.description||''}</div>
+      </div>
+      <div style="font-size:13px;font-weight:600;color:${ptColor(t.type)};flex-shrink:0">${t.points>0?'+':''}${t.points}</div>
+    </div>`;
+  }).join('');
+
+  return `
+    <div class="scan-banner">
+      <div class="scan-banner-text">
+        <div class="t1">Prêt à scanner</div>
+        <div class="t2">Appuyez sur le bouton 📷 pour scanner le QR d'un client</div>
+      </div>
+      <button class="btn-scan" onclick="openScanner()">📷 Scanner</button>
+    </div>
+    <div class="kpi-grid">
+      <div class="kpi"><div class="kpi-label">Membres</div><div class="kpi-value kpi-jade-v" style="color:var(--jade)">${members.length}</div></div>
+      <div class="kpi"><div class="kpi-label">Points émis</div><div class="kpi-value" style="color:var(--gold-d)">${totPts.toLocaleString('fr-FR')}</div></div>
+      <div class="kpi"><div class="kpi-label">Transactions</div><div class="kpi-value">${txns.length}</div></div>
+      <div class="kpi"><div class="kpi-label">Platine</div><div class="kpi-value" style="color:#3C3489">${tc.platine}</div></div>
+    </div>
+    <div class="grid2">
+      <div class="panel"><div class="panel-title">Activité récente</div>${recentHtml||'<div style="font-size:13px;color:var(--ink2);padding:12px 0">Aucune activité</div>'}</div>
+      <div class="panel"><div class="panel-title">Top membres</div>${topHtml||'<div style="font-size:13px;color:var(--ink2);padding:12px 0">Aucun membre</div>'}</div>
+    </div>`;
+}
+
+// ── MEMBERS ──
+function buildMembers(){
+  const rows=members.map(m=>`
+    <div class="member-row" data-member-id="${m.id}" style="grid-template-columns:1fr 110px 90px 60px 80px">
+      <div style="display:flex;gap:10px;align-items:center;min-width:0">
+        <div class="avatar" style="${avS(m.nom)}">${avI(m.nom)}</div>
+        <div style="min-width:0">
+          <div style="font-size:13px;font-weight:600;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">${m.nom}</div>
+          <div style="font-size:12px;color:var(--ink2)">${m.email||'—'}</div>
+        </div>
+      </div>
+      <div style="text-align:right;font-size:12px;color:var(--ink2)">${m.telephone}</div>
+      <div style="text-align:right"><span class="tier tier-${getTier(m.points||0)}">${tierLabel(getTier(m.points||0))}</span></div>
+      <div style="text-align:right;font-size:13px;color:var(--ink2)">${m.visites||0}</div>
+      <div style="text-align:right;font-family:'Fraunces',serif;font-size:15px;font-weight:700;color:var(--gold-d)">${(m.points||0).toLocaleString('fr-FR')}</div>
+    </div>`).join('');
+
+  return `<div class="panel">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:8px">
+      <div class="panel-title" style="margin:0">Membres (${members.length})</div>
+      <div style="display:flex;gap:8px">
+        <button class="btn-ink" onclick="goNewMember()">+ Nouveau client</button>
+        <button class="btn-ghost" onclick="loadData().then(render)">↻</button>
+      </div>
+    </div>
+    <div class="table-header member-header">
+      <span>Membre</span><span style="text-align:right">Téléphone</span><span style="text-align:right">Niveau</span><span style="text-align:right">Visites</span><span style="text-align:right">Points</span>
+    </div>
+    ${rows||'<div style="font-size:13px;color:var(--ink2);padding:20px 0;text-align:center">Aucun membre</div>'}
+  </div>`;
+}
+
+// ── MEMBER DETAIL ──
+async function renderMemberDetail(id){
+  const el=document.getElementById('mainContent');
+  const m=members.find(x=>x.id===id);
+  if(!m)return;
+  const{data:cards}=await sb.from('cartes_tampons').select('*').eq('membre_id',id);
+  const cm={};(cards||[]).forEach(c=>{cm[c.regle_id]=c.compteur;});
+  const mt=txns.filter(t=>t.membre_id===id);
+  const tier=getTier(m.points||0);
+
+  const stampCards=rules.map(r=>{
+    const count=cm[r.id]||0, full=count>=r.objectif;
+    const dots=Array.from({length:r.objectif},(_,i)=>`<div class="sdot ${i<count?'on':'off'}">${i<count?'✓':''}</div>`).join('');
+    const addBtn=`<button class="btn-stamp" onclick="addStampManual('${id}',${r.id})">✚ Tampon ${r.emoji} ${r.nom}</button>`;
+    const removeBtn=count>0?`<button class="btn-remove" onclick="removeStampManual('${id}',${r.id})">− Retirer un tampon</button>`:'';
+    const claimDiv=`<div class="full-reward">🎁 ${r.recompense}<br><button class="btn-gold" style="margin-top:8px;width:100%" onclick="claimReward('${id}',${r.id})">Offrir et remettre à zéro</button></div>`;
+    return `<div class="stamp-card-d ${full?'full':''}">
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="font-size:20px">${r.emoji}</span>
+          <div>
+            <div style="font-size:14px;font-weight:600;color:${full?'var(--gold-d)':'var(--ink)'}">${r.nom}</div>
+            <div style="font-size:12px;color:var(--ink2)">${r.recompense}</div>
+          </div>
+        </div>
+        <span style="font-family:'Fraunces',serif;font-size:14px;font-weight:700;color:${full?'var(--gold-d)':'var(--ink2)'}">${count}/${r.objectif}</span>
+      </div>
+      <div class="sdots">${dots}</div>
+      ${full?claimDiv:`<div style="display:flex;gap:8px;flex-wrap:wrap">${addBtn}${removeBtn}</div>`}
+    </div>`;
+  }).join('');
+
+  const history=mt.slice(0,12).map(t=>`
+    <div class="txn-row">
+      <div class="txn-dot" style="background:${t.type==='echange'||t.type==='recompense'?'var(--rose-l)':t.type==='bonus'?'var(--gold-l)':'var(--jade-l)'};color:${ptColor(t.type)}">${t.type==='echange'||t.type==='recompense'?'−':t.type==='bonus'?'★':'+'}</div>
+      <div style="flex:1"><div style="font-size:13px;font-weight:500">${t.description||''}</div><div style="font-size:12px;color:var(--ink2)">${new Date(t.cree_le).toLocaleDateString('fr-FR')}</div></div>
+      <div style="font-size:13px;font-weight:600;color:${ptColor(t.type)}">${t.points>0?'+':''}${t.points}</div>
+    </div>`).join('');
+
+  el.innerHTML=`
+    <div style="margin-bottom:16px;font-size:13px">
+      <span style="color:var(--jade);cursor:pointer;font-weight:500" onclick="backToMembers()">← Membres</span>
+      <span style="color:var(--ink2)"> / ${m.nom}</span>
+    </div>
+    <div class="member-hero">
+      <div style="display:flex;gap:14px;align-items:flex-start;flex-wrap:wrap">
+        <div class="member-hero-av">${avI(m.nom)}</div>
+        <div style="flex:1">
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px">
+            <div class="member-hero-name">${m.nom}</div>
+            <span class="tier tier-${tier}">${tierLabel(tier)}</span>
+          </div>
+          <div class="member-hero-sub">${m.telephone}${m.email?' · '+m.email:''} · Inscrit le ${new Date(m.cree_le).toLocaleDateString('fr-FR')}</div>
+        </div>
+        <div style="text-align:right;flex-shrink:0">
+          <div class="member-hero-pts">${(m.points||0).toLocaleString('fr-FR')}</div>
+          <div class="member-hero-pts-label">points</div>
+        </div>
+      </div>
+    </div>
+    <div class="grid2">
+      <div>
+        <div class="panel-title" style="margin-bottom:12px">Cartes tampons</div>
+        ${stampCards}
+      </div>
+      <div class="panel">
+        <div class="panel-title">Historique</div>
+        ${history||'<div style="font-size:13px;color:var(--ink2);padding:12px 0">Aucune transaction</div>'}
+      </div>
+    </div>`;
+}
+
+function backToMembers(){
+  selMemberId=null; activeTab='members';
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelector('[data-tab="members"]').classList.add('active');
+  render();
+}
+
+// ── STAMP ACTIONS ──
+async function addStampManual(memberId,ruleId){
+  const rule=rules.find(r=>r.id===ruleId);
+  if(!rule)return;
+  const{data:cards}=await sb.from('cartes_tampons').select('*').eq('membre_id',memberId);
+  const cm={};(cards||[]).forEach(c=>{cm[c.regle_id]=c.compteur;});
+  const newCount=(cm[ruleId]||0)+1;
+  await sb.from('cartes_tampons').upsert({membre_id:memberId,regle_id:ruleId,compteur:newCount,mis_a_jour_le:new Date().toISOString()},{onConflict:'membre_id,regle_id'});
+  const member=members.find(m=>m.id===memberId);
+  await sb.from('membres').update({points:(member?.points||0)+rule.points_par_tampon,visites:(member?.visites||0)+1}).eq('id',memberId);
+  await sb.from('transactions').insert([{membre_id:memberId,type:'tampon',points:rule.points_par_tampon,description:'Tampon '+rule.nom,regle_id:ruleId}]);
+  showToast('✓ Tampon '+rule.emoji+' '+rule.nom+(newCount>=rule.objectif?' — 🎉 Carte complète !':''));
+  await loadData(); await renderMemberDetail(memberId);
+}
+
+async function removeStampManual(memberId,ruleId){
+  const rule=rules.find(r=>r.id===ruleId);
+  if(!rule)return;
+  const{data:cards}=await sb.from('cartes_tampons').select('*').eq('membre_id',memberId);
+  const cm={};(cards||[]).forEach(c=>{cm[c.regle_id]=c.compteur;});
+  const current=cm[ruleId]||0;
+  if(current<=0){showToast('Aucun tampon à retirer');return;}
+  await sb.from('cartes_tampons').upsert({membre_id:memberId,regle_id:ruleId,compteur:current-1,mis_a_jour_le:new Date().toISOString()},{onConflict:'membre_id,regle_id'});
+  const member=members.find(m=>m.id===memberId);
+  if(member&&member.points>=rule.points_par_tampon) await sb.from('membres').update({points:(member.points||0)-rule.points_par_tampon}).eq('id',memberId);
+  await sb.from('transactions').insert([{membre_id:memberId,type:'echange',points:-rule.points_par_tampon,description:'Correction tampon '+rule.nom,regle_id:ruleId}]);
+  showToast('✓ Tampon retiré');
+  await loadData(); await renderMemberDetail(memberId);
+}
+
+async function claimReward(memberId,ruleId){
+  const rule=rules.find(r=>r.id===ruleId);
+  if(!rule)return;
+  showConfirmDialog('Offrir la récompense',rule.recompense,'Confirmer et remettre à zéro',async()=>{
+    await sb.from('cartes_tampons').upsert({membre_id:memberId,regle_id:ruleId,compteur:0,mis_a_jour_le:new Date().toISOString()},{onConflict:'membre_id,regle_id'});
+    await sb.from('transactions').insert([{membre_id:memberId,type:'recompense',points:0,description:'Récompense offerte : '+rule.recompense,regle_id:ruleId}]);
+    showToast('✓ Récompense offerte — carte remise à zéro !');
+    await loadData(); await renderMemberDetail(memberId);
+  });
+}
+
+function showConfirmDialog(title,subtitle,btnLabel,onConfirm){
+  document.getElementById('confirmDialog')?.remove();
+  const overlay=document.createElement('div');
+  overlay.id='confirmDialog'; overlay.className='dialog-overlay';
+  overlay.innerHTML=`
+    <div class="dialog-box">
+      <div style="font-size:48px;margin-bottom:16px">🎁</div>
+      <div style="font-family:'Fraunces',serif;font-size:18px;font-weight:700;margin-bottom:8px;color:var(--ink)">${title}</div>
+      <div style="background:var(--gold-l);border:1px solid rgba(201,146,42,.2);border-radius:10px;padding:12px;font-size:14px;font-weight:600;color:var(--gold-d);margin-bottom:16px">${subtitle}</div>
+      <div style="font-size:13px;color:var(--ink2);margin-bottom:20px;line-height:1.6">Cette action offrira la récompense au client et remettra sa carte à zéro.</div>
+      <div style="display:flex;gap:10px">
+        <button id="cancelDlg" class="btn-ghost" style="flex:1;padding:14px">Annuler</button>
+        <button id="confirmDlg" class="btn-jade" style="flex:1;padding:14px;font-size:14px">${btnLabel}</button>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+  document.getElementById('cancelDlg').onclick=()=>overlay.remove();
+  document.getElementById('confirmDlg').onclick=async()=>{ overlay.remove(); await onConfirm(); };
+  overlay.onclick=e=>{ if(e.target===overlay)overlay.remove(); };
+}
+
+// ── HISTORY ──
+function buildHistory(){
+  const rows=txns.map(t=>{
+    const m=members.find(x=>x.id===t.membre_id);
+    return `<div class="txn-row" data-member-id="${t.membre_id}" style="cursor:pointer">
+      <div class="txn-dot" style="background:${t.type==='echange'||t.type==='recompense'?'var(--rose-l)':t.type==='bonus'?'var(--gold-l)':'var(--jade-l)'};color:${ptColor(t.type)}">${t.type==='echange'||t.type==='recompense'?'−':t.type==='bonus'?'★':'+'}</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:13px;font-weight:600;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">${m?.nom||'—'}</div>
+        <div style="font-size:12px;color:var(--ink2)">${t.description||''}</div>
+      </div>
+      <div style="text-align:right;flex-shrink:0">
+        <div style="font-size:13px;font-weight:600;color:${ptColor(t.type)}">${t.points>0?'+':''}${t.points} pts</div>
+        <div style="font-size:11px;color:var(--ink2)">${new Date(t.cree_le).toLocaleDateString('fr-FR')}</div>
+      </div>
+    </div>`;
+  }).join('');
+  return `<div class="panel">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+      <div class="panel-title" style="margin:0">Historique (${txns.length})</div>
+      <button class="btn-ghost" onclick="loadData().then(render)">↻</button>
+    </div>
+    ${rows||'<div style="font-size:13px;color:var(--ink2);padding:20px 0;text-align:center">Aucune transaction</div>'}
+  </div>`;
+}
+
+// ── SETTINGS ──
+const EMOJIS=['🚬','☕','📰','💨','🍺','🥤','🎰','🍫','🧴','🔋','📦','🛒','⭐','🎁','💊','🍕','🥐','🧃','🍭','🎮'];
+
+function buildSettings(){
+  return `<div class="panel">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px">
+      <div class="panel-title" style="margin:0">Produits & règles tampons</div>
+      <button class="btn-ink" onclick="document.getElementById('addRulePanel').style.display='block'">+ Ajouter un produit</button>
+    </div>
+    <div id="rulesList"></div>
+  </div>
+  <div class="panel" id="addRulePanel" style="display:none">
+    <div class="panel-title">Nouveau produit</div>
+    <div style="margin-bottom:12px"><span class="flabel">Emoji</span><div class="emoji-picker" id="emojiPicker"></div></div>
+    <div class="form-grid2">
+      <div><span class="flabel">Nom *</span><input class="inp" id="rNom" placeholder="ex: FDJ, Boisson..."></div>
+      <div><span class="flabel">Récompense *</span><input class="inp" id="rRecompense" placeholder="ex: 1 ticket FDJ offert"></div>
+    </div>
+    <div class="form-grid2">
+      <div><span class="flabel">Nb achats</span><input class="inp" type="number" id="rObjectif" value="10" min="2" max="50"></div>
+      <div><span class="flabel">Points / tampon</span><input class="inp" type="number" id="rPts" value="5" min="1"></div>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:4px">
+      <button class="btn-jade" onclick="doAddRule()">Enregistrer</button>
+      <button class="btn-ghost" onclick="document.getElementById('addRulePanel').style.display='none'">Annuler</button>
+    </div>
+  </div>`;
+}
+
+function renderRulesList(){
+  const picker=document.getElementById('emojiPicker');
+  if(picker){ picker.innerHTML=''; EMOJIS.forEach(em=>{ const b=document.createElement('button'); b.className='emoji-btn'+(em===selEmoji?' sel':''); b.textContent=em; b.onclick=()=>{ selEmoji=em; renderRulesList(); }; picker.appendChild(b); }); }
+  const list=document.getElementById('rulesList');
+  if(!list)return;
+  list.innerHTML=rules.map(r=>`
+    <div class="rule-row">
+      <span style="font-size:22px">${r.emoji}</span>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:14px;font-weight:600">${r.nom}</div>
+        <div style="font-size:12px;color:var(--ink2)">${r.objectif} achats → ${r.recompense} · +${r.points_par_tampon} pts</div>
+      </div>
+      <button class="btn-rose" onclick="deleteRule(${r.id})">Supprimer</button>
+    </div>`).join('') || '<div style="font-size:13px;color:var(--ink2);padding:12px 0">Aucun produit configuré.</div>';
+}
+
+async function doAddRule(){
+  const nom=document.getElementById('rNom').value.trim();
+  const recompense=document.getElementById('rRecompense').value.trim();
+  const objectif=parseInt(document.getElementById('rObjectif').value)||10;
+  const pts=parseInt(document.getElementById('rPts').value)||5;
+  if(!nom||!recompense){ alert('Nom et récompense obligatoires'); return; }
+  const maxOrdre=rules.reduce((a,r)=>Math.max(a,r.ordre||0),0);
+  await sb.from('regles_tampons').insert([{nom,emoji:selEmoji,objectif,recompense,points_par_tampon:pts,actif:true,ordre:maxOrdre+1}]);
+  showToast('✓ "'+nom+'" ajouté');
+  document.getElementById('rNom').value=''; document.getElementById('rRecompense').value='';
+  document.getElementById('addRulePanel').style.display='none';
+  await loadData();
+  activeTab='settings';
+  document.getElementById('mainContent').innerHTML=buildSettings();
+  setTimeout(renderRulesList, 50);
+}
+
+async function deleteRule(id){
+  if(!confirm('Supprimer ce produit ?'))return;
+  await sb.from('regles_tampons').update({actif:false}).eq('id',id);
+  showToast('Produit supprimé'); await loadData();
+  document.getElementById('mainContent').innerHTML=buildSettings(); renderRulesList();
+}
+
+// ── NEW MEMBER ──
+function goNewMember(){ activeTab='newmember'; selMemberId=null; render(); }
+
+function buildNewMember(){
+  return `<div class="panel">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+      <div class="panel-title" style="margin:0">Inscrire un nouveau client</div>
+    </div>
+    <div class="form-grid2">
+      <div><span class="flabel">Prénom *</span><input class="inp" id="mPrenom" placeholder="Prénom"></div>
+      <div><span class="flabel">Nom *</span><input class="inp" id="mNom" placeholder="Nom de famille"></div>
+    </div>
+    <div class="form-grid2">
+      <div><span class="flabel">Téléphone *</span><input class="inp" id="mTel" placeholder="06 XX XX XX XX" type="tel"></div>
+      <div><span class="flabel">Email</span><input class="inp" id="mEmail" placeholder="optionnel" type="email"></div>
+    </div>
+    <div style="margin-bottom:20px"><span class="flabel">Date de naissance</span><input class="inp" id="mDob" type="date" style="max-width:200px"></div>
+    <div id="mErr" style="font-size:13px;color:var(--rose);margin-bottom:12px;display:none"></div>
+    <div style="display:flex;gap:10px">
+      <button class="btn-jade" onclick="doCreateMember()">Inscrire le client</button>
+      <button class="btn-ghost" onclick="backToMembers()">Annuler</button>
+    </div>
+  </div>`;
+}
+
+async function doCreateMember(){
+  const prenom=document.getElementById('mPrenom').value.trim();
+  const nom=document.getElementById('mNom').value.trim();
+  const tel=document.getElementById('mTel').value.replace(/\s/g,'');
+  const email=document.getElementById('mEmail').value.trim();
+  const dob=document.getElementById('mDob').value;
+  const errEl=document.getElementById('mErr');
+  if(!prenom||!nom){ errEl.textContent='Prénom et nom obligatoires'; errEl.style.display='block'; return; }
+  if(tel.length<10){ errEl.textContent='Téléphone invalide (10 chiffres)'; errEl.style.display='block'; return; }
+  errEl.style.display='none';
+  const{data,error}=await sb.from('membres').insert([{nom:prenom+' '+nom.toUpperCase(),telephone:tel,email:email||null,date_naissance:dob||null,rgpd_accepte_le:new Date().toISOString()}]).select().single();
+  if(error){ errEl.textContent=(error.code==='23505'?'Ce numéro est déjà inscrit':'Erreur: '+error.message); errEl.style.display='block'; return; }
+  showToast('✓ '+prenom+' '+nom+' inscrit(e) !');
+  await loadData(); selMemberId=data.id; renderMemberDetail(data.id);
+}
+
+// ── SCANNER ──
+document.getElementById('scanFab').onclick=openScanner;
+document.getElementById('scanClose').onclick=closeScanner;
+
+async function openScanner(){
+  document.getElementById('scannerModal').style.display='flex';
+  document.getElementById('scanHint').textContent='Pointez vers le QR code du client';
+  scanActive=true;
+  try{
+    const stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}});
+    scanStream=stream;
+    const video=document.getElementById('scanVideo');
+    video.srcObject=stream;
+    video.play().then(()=>{ scanRaf=requestAnimationFrame(scanTick); });
+  }catch(e){ document.getElementById('scanHint').textContent='Caméra non disponible'; }
+}
+
+function scanTick(){
+  if(!scanActive)return;
+  const video=document.getElementById('scanVideo');
+  const canvas=document.getElementById('scanCanvas');
+  if(video.readyState>=2&&video.videoWidth>0&&window.jsQR){
+    canvas.width=video.videoWidth; canvas.height=video.videoHeight;
+    const ctx=canvas.getContext('2d'); ctx.drawImage(video,0,0);
+    const img=ctx.getImageData(0,0,canvas.width,canvas.height);
+    const code=window.jsQR(img.data,img.width,img.height,{inversionAttempts:'dontInvert'});
+    if(code?.data){
+      let memberId=null, ruleId=null;
+      if(code.data.includes('admin.html?scan=')){
+        const u=new URL(code.data); memberId=u.searchParams.get('scan'); ruleId=u.searchParams.get('rule')?parseInt(u.searchParams.get('rule')):null;
+      } else if(code.data.startsWith('FIDELITAB_')){
+        const p=code.data.split('_'); memberId=p[1]; ruleId=p[2]?parseInt(p[2]):null;
+      }
+      if(memberId){ stopScan(); processScannedMember(memberId,ruleId); return; }
+    }
+  }
+  scanRaf=requestAnimationFrame(scanTick);
+}
+
+function stopScan(){
+  scanActive=false;
+  if(scanStream)scanStream.getTracks().forEach(t=>t.stop());
+  if(scanRaf)cancelAnimationFrame(scanRaf);
+  scanStream=null; scanRaf=null;
+}
+
+function closeScanner(){ stopScan(); document.getElementById('scannerModal').style.display='none'; }
+
+async function processScannedMember(memberId,preselectedRuleId){
+  closeScanner();
+  const{data:m}=await sb.from('membres').select('*').eq('id',memberId).single();
+  if(!m){ showToast('Client non trouvé'); return; }
+  const{data:cards}=await sb.from('cartes_tampons').select('*').eq('membre_id',memberId);
+  const cm={};(cards||[]).forEach(c=>{cm[c.regle_id]=c.compteur;});
+  const sheet=document.getElementById('confirmSheet');
+  const modal=document.getElementById('confirmModal');
+
+  let rulesHtml='';
+  if(preselectedRuleId){
+    const r=rules.find(x=>x.id===preselectedRuleId);
+    if(r){
+      const count=cm[r.id]||0, full=count>=r.objectif;
+      const dots=Array.from({length:r.objectif},(_,i)=>`<div class="sdot ${i<count?'on':'off'}">${i<count?'✓':''}</div>`).join('');
+      rulesHtml=`<div class="stamp-card-d ${full?'full':''}">
+        <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px">
+          <span style="font-size:22px">${r.emoji}</span>
+          <div><div style="font-size:15px;font-weight:600">${r.nom}</div><div style="font-size:12px;color:var(--ink2)">${count}/${r.objectif}</div></div>
+        </div>
+        <div class="sdots">${dots}</div>
+        ${full?`<div class="full-reward">🎁 ${r.recompense}</div>`:`<button class="btn-stamp" onclick="addStampFromScan('${memberId}',${r.id})">✚ Valider le tampon ${r.emoji} ${r.nom}</button>`}
+      </div>`;
+    }
+  }else{
+    rulesHtml=rules.map(r=>{
+      const count=cm[r.id]||0, full=count>=r.objectif;
+      return `<button onclick="addStampFromScan('${memberId}',${r.id})" style="width:100%;padding:12px 14px;border-radius:12px;border:1px solid var(--border);background:var(--card);display:flex;align-items:center;gap:12px;cursor:pointer;font-family:'DM Sans',sans-serif;text-align:left;margin-bottom:8px">
+        <span style="font-size:22px">${r.emoji}</span>
+        <div style="flex:1"><div style="font-size:14px;font-weight:600">${r.nom}</div><div style="font-size:12px;color:var(--ink2)">${full?'🎉 Récompense !':count+'/'+r.objectif}</div></div>
+      </button>`;
+    }).join('');
+  }
+
+  sheet.innerHTML=`
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px">
+      <div class="member-hero-av" style="width:46px;height:46px;font-size:17px">${avI(m.nom)}</div>
+      <div>
+        <div style="font-family:'Fraunces',serif;font-size:17px;font-weight:700">${m.nom}</div>
+        <div style="font-size:13px;color:var(--ink2)">${(m.points||0).toLocaleString('fr-FR')} points · <span class="tier tier-${getTier(m.points||0)}">${tierLabel(getTier(m.points||0))}</span></div>
+      </div>
+    </div>
+    ${rulesHtml}
+    <button class="btn-ghost" style="width:100%;margin-top:8px;padding:14px" onclick="document.getElementById('confirmModal').style.display='none'">Annuler</button>`;
+  modal.style.display='flex';
+}
+
+async function addStampFromScan(memberId,ruleId){
+  document.getElementById('confirmModal').style.display='none';
+  await addStampManual(memberId,ruleId);
+  selMemberId=memberId; await renderMemberDetail(memberId);
+}
+
+// ── URL SCAN ──
+async function checkScanParams(){
+  const params=new URLSearchParams(window.location.search);
+  const memberId=params.get('scan'), ruleId=params.get('rule');
+  if(!memberId)return false;
+  window.history.replaceState({},'',window.location.pathname);
+  await loadData();
+  if(ruleId){ await processScannedMember(memberId,parseInt(ruleId)); }
+  else{ selMemberId=memberId; await renderMemberDetail(memberId); }
+  return true;
+}
+
+// ── INIT ──
+checkAuth().then(authed=>{ if(!authed)return; checkScanParams().then(handled=>{ if(!handled)loadData().then(render); }); });
+</script>
+</body>
+</html>

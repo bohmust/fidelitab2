@@ -86,9 +86,38 @@ nav { display: flex; gap: 4px; flex-wrap: wrap; }
   .member-row,.member-header{grid-template-columns:1fr 80px 80px}
   .grid2{grid-template-columns:1fr}
 }
+
+/* ── LOGIN SCREEN ── */
+#loginScreen{position:fixed;inset:0;z-index:9999;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:20px}
+.login-card{background:var(--white);border:1px solid var(--border);border-radius:20px;padding:36px 32px;width:100%;max-width:400px;box-shadow:0 8px 32px rgba(0,0,0,.1)}
+.login-logo{width:48px;height:48px;border-radius:12px;background:var(--purple);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:22px;color:#fff;margin:0 auto 20px}
+.login-title{font-size:20px;font-weight:700;color:var(--text);text-align:center;margin-bottom:6px}
+.login-sub{font-size:13px;color:var(--text2);text-align:center;margin-bottom:28px}
+.login-err{font-size:13px;color:var(--red);background:var(--red-l);border-radius:10px;padding:10px 14px;margin-bottom:16px;display:none}
+.login-btn{width:100%;padding:14px;border-radius:10px;border:none;background:var(--purple);color:#fff;font-family:inherit;font-size:15px;font-weight:600;cursor:pointer;margin-top:8px;transition:opacity .15s}
+.login-btn:hover{opacity:.85}
+.login-btn:disabled{opacity:.5;cursor:not-allowed}
 </style>
 </head>
 <body>
+
+<div id="loginScreen">
+  <div class="login-card">
+    <div class="login-logo">F</div>
+    <div class="login-title">FidéliTab Admin</div>
+    <div class="login-sub">Connectez-vous pour accéder au panel</div>
+    <div class="login-err" id="loginErr"></div>
+    <div style="margin-bottom:14px">
+      <label class="flabel">Email</label>
+      <input class="inp" id="loginEmail" type="email" placeholder="admin@fidelitab.fr" autocomplete="username" onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <div style="margin-bottom:6px">
+      <label class="flabel">Mot de passe</label>
+      <input class="inp" id="loginPassword" type="password" placeholder="••••••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <button class="login-btn" id="loginBtn" onclick="doLogin()">Connexion</button>
+  </div>
+</div>
 
 <div class="topbar">
   <div style="display:flex;align-items:center;gap:10px">
@@ -101,6 +130,7 @@ nav { display: flex; gap: 4px; flex-wrap: wrap; }
     <button class="nav-btn" data-tab="history">Historique</button>
     <button class="nav-btn" data-tab="settings">⚙ Produits</button>
   </nav>
+  <button class="nav-btn" onclick="doLogout()" style="color:rgba(255,255,255,.35);margin-left:8px;font-size:12px">↩ Déconnexion</button>
 </div>
 
 <button class="scan-fab" id="scanFab" title="Scanner un client">📷</button>
@@ -139,6 +169,36 @@ nav { display: flex; gap: 4px; flex-wrap: wrap; }
 const SUPABASE_URL = 'https://cgyvmrxpoofrnturffxl.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNneXZtcnhwb29mcm50dXJmZnhsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIzNjkxNjQsImV4cCI6MjA4Nzk0NTE2NH0.0JNkokFJOshJnzyrBOSbgrnyFHeLvA5pMaaL1jP8kq8';
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// ── AUTH ──
+async function checkAuth(){
+  const{data:{session}}=await sb.auth.getSession();
+  if(!session)return false;
+  document.getElementById('loginScreen').remove();
+  return true;
+}
+
+async function doLogin(){
+  const email=document.getElementById('loginEmail').value.trim();
+  const pass=document.getElementById('loginPassword').value;
+  const btn=document.getElementById('loginBtn');
+  const errEl=document.getElementById('loginErr');
+  btn.disabled=true; btn.textContent='Connexion…'; errEl.style.display='none';
+  const{error}=await sb.auth.signInWithPassword({email,password:pass});
+  if(error){
+    errEl.textContent='Email ou mot de passe incorrect.';
+    errEl.style.display='block';
+    btn.disabled=false; btn.textContent='Connexion';
+    return;
+  }
+  document.getElementById('loginScreen').remove();
+  checkScanParams().then(handled=>{ if(!handled)loadData().then(render); });
+}
+
+async function doLogout(){
+  await sb.auth.signOut();
+  location.reload();
+}
 
 // ── STATE ──
 let members = [], rules = [], txns = [];
@@ -731,7 +791,7 @@ async function checkScanParams() {
   return true;
 }
 
-checkScanParams().then(handled => { if(!handled) loadData().then(render); });
+checkAuth().then(authed=>{ if(!authed)return; checkScanParams().then(handled=>{ if(!handled)loadData().then(render); }); });
 </script>
 </body>
 </html>
