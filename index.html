@@ -769,8 +769,14 @@ async function doRegister(){
   try{
     const m=await createMember({nom:form.prenom.trim()+' '+form.nom.trim().toUpperCase(),telephone:clean(state.phone),email:form.email||null,date_naissance:form.dob||null,rgpd_accepte_le:new Date().toISOString()});
     state.member=m;state.cards={};
+    state.rules=state.rules.length?state.rules:await getRules();
     renderWelcome();
-  }catch(e){state.errors={prenom:"Erreur d'inscription — réessayez"};renderRegister();}
+  }catch(e){
+    const msg=e?.message||e?.error_description||'';
+    const isDouble=msg.includes('duplicate')||msg.includes('unique')||e?.code==='23505';
+    state.errors={prenom:isDouble?'Ce numéro est déjà inscrit — entrez votre numéro pour accéder à votre carte':"Erreur d'inscription : "+msg};
+    renderRegister();
+  }
 }
 
 function doLogout(){
