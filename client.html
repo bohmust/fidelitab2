@@ -417,15 +417,18 @@ async function doSelectProd(ruleId){
     state.screen='code';
     renderCode();
     if(codeTimer)clearInterval(codeTimer);
+    let isStamping=false;
     codeTimer=setInterval(async()=>{
+      if(isStamping)return;
       const left=Math.max(0,Math.ceil((state.codeExpiresAt-Date.now())/1000));
       const fill=document.getElementById('ccFill');
       if(fill){fill.style.width=(left/CODE_EXPIRE_SECONDS*100)+'%';fill.style.background=left<30?'#f59e0b':'#6366f1';}
-      if(left<=0){clearInterval(codeTimer);renderCode();return;}
+      if(left<=0){clearInterval(codeTimer);codeTimer=null;renderCode();return;}
       // Poll if code was used
       const used=await pollCodeUsed(state.codeId);
       if(used){
-        clearInterval(codeTimer);
+        isStamping=true;
+        clearInterval(codeTimer);codeTimer=null;
         await addStamp(state.member.id,ruleId);
         state.screen='confirm';
         renderConfirm();

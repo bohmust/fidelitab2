@@ -226,11 +226,13 @@ function showToast(msg) {
 }
 
 // ── DATA ──
-async function loadData() {
+async function loadData(full = false) {
+  let txnQuery = sb.from('transactions').select('*').order('cree_le', {ascending:false});
+  if (!full) txnQuery = txnQuery.limit(60);
   const [m, r, t] = await Promise.all([
     sb.from('membres').select('*').order('cree_le', {ascending:false}),
     sb.from('regles_tampons').select('*').eq('actif',true).order('ordre'),
-    sb.from('transactions').select('*').order('cree_le', {ascending:false}).limit(60)
+    txnQuery
   ]);
   members = m.data || [];
   rules   = r.data || [];
@@ -243,7 +245,7 @@ async function render() {
   const el = document.getElementById('mainContent');
   if (activeTab === 'dashboard') { await loadData(); el.innerHTML = buildDashboard(); }
   else if (activeTab === 'members')  { await loadData(); el.innerHTML = buildMembers(); }
-  else if (activeTab === 'history')  { await loadData(); el.innerHTML = buildHistory(); }
+  else if (activeTab === 'history')  { await loadData(true); el.innerHTML = buildHistory(); }
   else if (activeTab === 'settings') { el.innerHTML = buildSettings(); renderRulesList(); }
   else if (activeTab === 'newmember') { el.innerHTML = buildNewMember(); }
 }
@@ -299,10 +301,22 @@ function buildDashboard() {
   }).join('');
 
   return `
-    <div style="background:#1e1b4b;border-radius:16px;padding:18px 20px;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
-      <div><div style="font-size:14px;font-weight:600;color:rgba(255,255,255,.9);margin-bottom:4px">Prêt à scanner</div>
-      <div style="font-size:13px;color:rgba(255,255,255,.55)">Appuyez sur 📷 pour scanner le QR d'un client</div></div>
-      <button class="btn-green" onclick="openScanner()">📷 Scanner</button>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px">
+      <div style="background:#1e1b4b;border-radius:16px;padding:18px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+        <div><div style="font-size:14px;font-weight:600;color:rgba(255,255,255,.9);margin-bottom:4px">Prêt à scanner</div>
+        <div style="font-size:13px;color:rgba(255,255,255,.55)">Scannez le QR code du client</div></div>
+        <button class="btn-green" onclick="openScanner()">📷 Scanner</button>
+      </div>
+      <div style="background:var(--white);border:1px solid var(--border);border-radius:16px;padding:18px 20px">
+        <div style="font-size:13px;font-weight:600;margin-bottom:10px">🔢 Valider le code client</div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <input id="codeInput" class="inp" type="text" inputmode="numeric" maxlength="4" placeholder="1234"
+            style="width:90px;text-align:center;font-size:20px;font-weight:700;letter-spacing:4px;padding:10px"
+            onkeydown="if(event.key==='Enter')validateClientCode()">
+          <button class="btn-green" onclick="validateClientCode()">✓ Valider</button>
+        </div>
+        <div id="codeResult" style="font-size:12px;margin-top:8px;min-height:18px"></div>
+      </div>
     </div>
     <div class="kpi-grid">
       <div class="kpi"><div class="kpi-label">Membres</div><div class="kpi-value">${members.length}</div></div>
@@ -314,6 +328,28 @@ function buildDashboard() {
       <div class="panel"><div class="panel-title">Activité récente</div>${recentHtml}</div>
       <div class="panel"><div class="panel-title">Top membres</div>${topHtml}</div>
     </div>`;
+}
+
+// ── CODE VALIDATION ──
+async function validateClientCode() {
+  const codeInput = document.getElementById('codeInput');
+  const resultEl  = document.getElementById('codeResult');
+  if (!codeInput || !resultEl) return;
+  const code = codeInput.value.trim();
+  if (code.length !== 4 || !/^\d{4}$/.test(code)) {
+    resultEl.textContent = '⚠ Saisissez un code à 4 chiffres'; resultEl.style.color = 'var(--red)'; return;
+  }
+  resultEl.textContent = 'Vérification…'; resultEl.style.color = 'var(--text2)';
+  const now = new Date().toISOString();
+  const { data, error } = await sb.from('codes_validation')
+    .select('*').eq('code', code).eq('utilise', false).gt('expire_le', now).maybeSingle();
+  if (error || !data) {
+    resultEl.textContent = '❌ Code invalide ou expiré'; resultEl.style.color = 'var(--red)'; return;
+  }
+  await sb.from('codes_validation').update({ utilise: true }).eq('id', data.id);
+  resultEl.textContent = '✓ Code validé — tampon accordé !'; resultEl.style.color = 'var(--green)';
+  codeInput.value = '';
+  showToast('✓ Code client validé !');
 }
 
 // ── MEMBERS ──
