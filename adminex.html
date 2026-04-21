@@ -878,7 +878,7 @@ function scanTick(){
     const code=window.jsQR(img.data,img.width,img.height,{inversionAttempts:'dontInvert'});
     if(code?.data){
       let memberId=null, ruleId=null;
-      if(code.data.includes('admin.html?scan=')){
+      if(code.data.includes('?scan=')){
         const u=new URL(code.data); memberId=u.searchParams.get('scan'); ruleId=u.searchParams.get('rule')?parseInt(u.searchParams.get('rule')):null;
       } else if(code.data.startsWith('FIDELITAB_')){
         const p=code.data.split('_'); memberId=p[1]; ruleId=p[2]?parseInt(p[2]):null;
