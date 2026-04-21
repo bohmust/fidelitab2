@@ -243,7 +243,7 @@ async function render() {
   const el = document.getElementById('mainContent');
   if (activeTab === 'dashboard') { await loadData(); el.innerHTML = buildDashboard(); }
   else if (activeTab === 'members')  { await loadData(); el.innerHTML = buildMembers(); }
-  else if (activeTab === 'history')  { el.innerHTML = buildHistory(); }
+  else if (activeTab === 'history')  { await loadData(); el.innerHTML = buildHistory(); }
   else if (activeTab === 'settings') { el.innerHTML = buildSettings(); renderRulesList(); }
   else if (activeTab === 'newmember') { el.innerHTML = buildNewMember(); }
 }
@@ -434,6 +434,7 @@ async function addStampManual(memberId, ruleId) {
   const { data: cards } = await sb.from('cartes_tampons').select('*').eq('membre_id', memberId);
   const cm = {};
   (cards||[]).forEach(c => { cm[c.regle_id] = c.compteur; });
+  if ((cm[ruleId]||0) >= rule.objectif) { showToast('Carte déjà complète — offrez la récompense d\'abord'); return; }
   const newCount = (cm[ruleId]||0) + 1;
   await sb.from('cartes_tampons').upsert({membre_id:memberId,regle_id:ruleId,compteur:newCount,mis_a_jour_le:new Date().toISOString()},{onConflict:'membre_id,regle_id'});
   const member = members.find(m => m.id === memberId);
@@ -512,7 +513,10 @@ async function removeStampManual(memberId, ruleId) {
   await sb.from('cartes_tampons').upsert({membre_id:memberId,regle_id:ruleId,compteur:current-1,mis_a_jour_le:new Date().toISOString()},{onConflict:'membre_id,regle_id'});
   const member = members.find(m => m.id === memberId);
   if (member && member.points >= rule.points_par_tampon) {
-    await sb.from('membres').update({points:(member.points||0)-rule.points_par_tampon}).eq('id',memberId);
+    await sb.from('membres').update({
+      points: (member.points||0) - rule.points_par_tampon,
+      visites: Math.max(0, (member.visites||0) - 1)
+    }).eq('id', memberId);
   }
   await sb.from('transactions').insert([{membre_id:memberId,type:'echange',points:-rule.points_par_tampon,description:'Correction tampon '+rule.nom,regle_id:ruleId}]);
   showToast('✓ Tampon retiré');

@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>FidéliTab — QR codes produits</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@600;700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;background:#F7F7F5;padding:32px 20px;color:#0D0D14}
+.header{text-align:center;margin-bottom:32px}
+.header h1{font-family:'Fraunces',serif;font-size:24px;font-weight:700;margin-bottom:8px}
+.header p{font-size:14px;color:#5A5A72;line-height:1.6;max-width:500px;margin:0 auto}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:20px;max-width:900px;margin:0 auto 32px}
+.card{
+  background:#fff;border:1px solid #EBEBEB;border-radius:18px;
+  padding:24px 20px;text-align:center;
+  box-shadow:0 2px 12px rgba(13,13,20,.07);
+}
+.card-top{width:4px;height:40px;border-radius:2px;margin:0 auto 16px;display:none}
+.emoji{font-size:36px;margin-bottom:10px}
+.name{font-family:'Fraunces',serif;font-size:17px;font-weight:700;margin-bottom:4px}
+.sub{font-size:12px;color:#5A5A72;margin-bottom:16px;line-height:1.5}
+.qr-wrap{display:flex;justify-content:center;margin-bottom:14px}
+.qr-inner{background:#fff;border-radius:12px;padding:8px;border:1px solid #EBEBEB;display:inline-block}
+.url{font-size:10px;color:#9898B0;word-break:break-all;line-height:1.4}
+.btn-print{
+  display:block;margin:0 auto;
+  padding:13px 28px;background:#0D0D14;color:#fff;
+  border:none;border-radius:12px;font-family:'DM Sans',sans-serif;
+  font-size:15px;font-weight:600;cursor:pointer;
+}
+.loading{text-align:center;padding:60px;color:#5A5A72;font-size:15px}
+@media print{
+  body{background:#fff;padding:16px}
+  .header p,.btn-print{display:none}
+  .header h1{font-size:18px}
+  .grid{grid-template-columns:repeat(2,1fr);gap:16px}
+  .card{break-inside:avoid;border:1px solid #ccc;box-shadow:none}
+}
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>🏷️ QR codes produits</h1>
+  <p>Imprimez et plastifiez ces QR codes. Posez-les sur le comptoir à côté de chaque produit. Les produits sont chargés automatiquement depuis votre configuration.</p>
+</div>
+<div class="grid" id="qrGrid"><div class="loading">Chargement des produits...</div></div>
+<button class="btn-print" onclick="window.print()">🖨️ Imprimer les QR codes</button>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script>
+const SUPABASE_URL='https://cgyvmrxpoofrnturffxl.supabase.co';
+const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNneXZtcnhwb29mcm50dXJmZnhsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIzNjkxNjQsImV4cCI6MjA4Nzk0NTE2NH0.0JNkokFJOshJnzyrBOSbgrnyFHeLvA5pMaaL1jP8kq8';
+const BASE_URL='https://bohmust.github.io/fidelitab2';
+const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+
+const COLORS=['#C9922A','#1A7A5E','#0D0D14','#C94040','#534AB7','#185FA5','#7A3B8A','#2B7A3B'];
+
+async function load(){
+  const{data:rules}=await sb.from('regles_tampons').select('*').eq('actif',true).order('ordre');
+  const grid=document.getElementById('qrGrid');
+  if(!rules||rules.length===0){
+    grid.innerHTML='<div class="loading">Aucun produit configuré. Ajoutez des produits dans l\'admin ⚙ Produits.</div>';
+    return;
+  }
+  grid.innerHTML='';
+  rules.forEach((r,i)=>{
+    // Slug: nom en minuscules, sans accents, sans espaces
+    const slug=r.nom.toLowerCase()
+      .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+      .replace(/[^a-z0-9]/g,'-').replace(/-+/g,'-').replace(/^-|-$/g,'');
+    const url=`${BASE_URL}/?p=${slug}`;
+    const color=COLORS[i%COLORS.length];
+    const card=document.createElement('div');
+    card.className='card';
+    card.style.borderTop=`4px solid ${color}`;
+    card.innerHTML=`
+      <div class="emoji">${r.emoji}</div>
+      <div class="name">${r.nom}</div>
+      <div class="sub">${r.objectif} achats → ${r.recompense}</div>
+      <div class="qr-wrap"><div class="qr-inner" id="qr_${r.id}"></div></div>
+      <div class="url">${url}</div>`;
+    grid.appendChild(card);
+    setTimeout(()=>{
+      new QRCode(document.getElementById('qr_'+r.id),{
+        text:url,width:150,height:150,
+        colorDark:'#0D0D14',colorLight:'#ffffff'
+      });
+    },100);
+  });
+}
+
+load();
+</script>
+</body>
+</html>

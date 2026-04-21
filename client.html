@@ -319,7 +319,7 @@ function renderCode(){
     expired?el('button',{onclick:()=>doSelectProd(state.selRuleId),style:'margin-top:14px;padding:10px 18px;border-radius:10px;border:none;background:rgba(255,255,255,.12);color:#fff;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit'},'Nouveau code'):null
   );
   s.appendChild(el('div',{class:'code-screen'},
-    el('span',{class:'code-back',onclick:()=>{state.screen='select';renderSelect();}},'← Changer de produit'),
+    el('span',{class:'code-back',onclick:()=>{if(codeTimer){clearInterval(codeTimer);codeTimer=null;}state.screen='select';renderSelect();}},'← Changer de produit'),
     el('div',{class:'prod-chip'},el('span',{class:'pc-emoji'},r.emoji),el('div',null,el('div',{class:'pc-name'},r.nom),el('div',{class:'pc-sub'},'En attente de validation'))),
     codeCard
   ));
