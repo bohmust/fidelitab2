@@ -535,7 +535,22 @@ async function validateClientCode(){
   if(error||!data){
     resultEl.textContent='❌ Code invalide ou expiré'; resultEl.style.color='var(--rose)'; return;
   }
-  await sb.from('codes_validation').update({utilise:true}).eq('id',data.id);
+  // Marquer comme utilisé
+  await sb.from('codes_validation').update({utilise:true,utilise_le:new Date().toISOString()}).eq('id',data.id);
+  // Ajouter le tampon si le code porte un regle_id
+  if(data.regle_id&&data.membre_id){
+    const rule=rules.find(r=>r.id===data.regle_id);
+    if(rule){
+      const{data:cards}=await sb.from('cartes_tampons').select('compteur').eq('membre_id',data.membre_id).eq('regle_id',data.regle_id);
+      const current=(cards&&cards[0])?cards[0].compteur:0;
+      if(current<rule.objectif){
+        await sb.from('cartes_tampons').upsert({membre_id:data.membre_id,regle_id:data.regle_id,compteur:current+1,mis_a_jour_le:new Date().toISOString()},{onConflict:'membre_id,regle_id'});
+        const{data:m}=await sb.from('membres').select('points,visites').eq('id',data.membre_id).single();
+        if(m) await sb.from('membres').update({points:(m.points||0)+rule.points_par_tampon,visites:(m.visites||0)+1}).eq('id',data.membre_id);
+        await sb.from('transactions').insert([{membre_id:data.membre_id,type:'tampon',points:rule.points_par_tampon,description:'Tampon '+rule.nom+' (code '+code+')',regle_id:data.regle_id}]);
+      }
+    }
+  }
   resultEl.textContent='✓ Code validé — tampon accordé !'; resultEl.style.color='var(--jade)';
   codeInput.value='';
   showToast('✓ Code client validé !');
