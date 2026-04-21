@@ -491,7 +491,14 @@ function getTier(pts){
 }
 
 async function findMember(p){const{data}=await sb.from('membres').select('*').eq('telephone',p).single();return data;}
-async function createMember(d){const{data,error}=await sb.from('membres').insert([d]).select().single();if(error)throw error;return data;}
+async function createMember(d){
+  const{data,error}=await sb.rpc('inscrire_membre',{
+    p_nom:d.nom,p_telephone:d.telephone,p_email:d.email||null,
+    p_date_naissance:d.date_naissance||null,p_rgpd_accepte_le:d.rgpd_accepte_le
+  });
+  if(error)throw error;
+  return data;
+}
 async function getRules(){const{data}=await sb.from('regles_tampons').select('*').eq('actif',true).order('ordre');return data||[];}
 async function getCards(id){const{data}=await sb.from('cartes_tampons').select('regle_id,compteur').eq('membre_id',id);const m={};(data||[]).forEach(c=>m[c.regle_id]=c.compteur);return m;}
 
