@@ -779,9 +779,16 @@ async function doRegister(){
     state.rules=state.rules.length?state.rules:await getRules();
     renderWelcome();
   }catch(e){
-    const msg=e?.message||e?.error_description||'';
-    const isDouble=msg.includes('duplicate')||msg.includes('unique')||e?.code==='23505';
-    state.errors={prenom:isDouble?'Ce numéro est déjà inscrit — entrez votre numéro pour accéder à votre carte':"Erreur d'inscription : "+msg};
+    console.error('doRegister error',JSON.stringify(e));
+    const msg=e?.message||e?.error_description||e?.details||JSON.stringify(e)||'';
+    const code=e?.code||'';
+    const isDouble=msg.includes('duplicate')||msg.includes('unique')||code==='23505';
+    const isMissing=msg.includes('inscrire_membre')||code==='42883'||code==='PGRST202';
+    state.errors={prenom:isDouble
+      ?'Ce numéro est déjà inscrit — entrez votre numéro pour accéder à votre carte'
+      :isMissing
+        ?'Erreur config : exécutez patch_inscription_rpc.sql dans Supabase'
+        :'Erreur ('+code+'): '+msg};
     renderRegister();
   }
 }
