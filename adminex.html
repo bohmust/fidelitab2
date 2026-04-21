@@ -421,11 +421,13 @@ function showToast(msg){
   setTimeout(()=>t.remove(),3000);
 }
 
-async function loadData(){
+async function loadData(full=false){
+  let txnQuery=sb.from('transactions').select('*').order('cree_le',{ascending:false});
+  if(!full) txnQuery=txnQuery.limit(60);
   const[m,r,t]=await Promise.all([
     sb.from('membres').select('*').order('cree_le',{ascending:false}),
     sb.from('regles_tampons').select('*').eq('actif',true).order('ordre'),
-    sb.from('transactions').select('*').order('cree_le',{ascending:false}).limit(60)
+    txnQuery
   ]);
   members=m.data||[]; rules=r.data||[]; txns=t.data||[];
 }
@@ -435,7 +437,7 @@ async function render(){
   if(selMemberId){ await renderMemberDetail(selMemberId); return; }
   if(activeTab==='dashboard'){ await loadData(); el.innerHTML=buildDashboard(); }
   else if(activeTab==='members'){ await loadData(); el.innerHTML=buildMembers(); }
-  else if(activeTab==='history'){ el.innerHTML=buildHistory(); }
+  else if(activeTab==='history'){ await loadData(true); el.innerHTML=buildHistory(); }
   else if(activeTab==='settings'){ el.innerHTML=buildSettings(); renderRulesList(); }
   else if(activeTab==='newmember'){ el.innerHTML=buildNewMember(); }
 }
@@ -486,12 +488,24 @@ function buildDashboard(){
   }).join('');
 
   return `
-    <div class="scan-banner">
-      <div class="scan-banner-text">
-        <div class="t1">Prêt à scanner</div>
-        <div class="t2">Appuyez sur le bouton 📷 pour scanner le QR d'un client</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px">
+      <div class="scan-banner" style="margin-bottom:0">
+        <div class="scan-banner-text">
+          <div class="t1">Prêt à scanner</div>
+          <div class="t2">Scannez le QR code du client</div>
+        </div>
+        <button class="btn-scan" onclick="openScanner()">📷 Scanner</button>
       </div>
-      <button class="btn-scan" onclick="openScanner()">📷 Scanner</button>
+      <div class="panel" style="margin-bottom:0">
+        <div class="panel-title" style="margin-bottom:10px">🔢 Valider le code client</div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <input id="codeInput" class="inp" type="text" inputmode="numeric" maxlength="4" placeholder="1234"
+            style="width:90px;text-align:center;font-size:20px;font-weight:700;letter-spacing:4px;padding:10px"
+            onkeydown="if(event.key==='Enter')validateClientCode()">
+          <button class="btn-jade" onclick="validateClientCode()">✓ Valider</button>
+        </div>
+        <div id="codeResult" style="font-size:12px;margin-top:8px;min-height:18px"></div>
+      </div>
     </div>
     <div class="kpi-grid">
       <div class="kpi"><div class="kpi-label">Membres</div><div class="kpi-value kpi-jade-v" style="color:var(--jade)">${members.length}</div></div>
@@ -503,6 +517,28 @@ function buildDashboard(){
       <div class="panel"><div class="panel-title">Activité récente</div>${recentHtml||'<div style="font-size:13px;color:var(--ink2);padding:12px 0">Aucune activité</div>'}</div>
       <div class="panel"><div class="panel-title">Top membres</div>${topHtml||'<div style="font-size:13px;color:var(--ink2);padding:12px 0">Aucun membre</div>'}</div>
     </div>`;
+}
+
+// ── CODE VALIDATION ──
+async function validateClientCode(){
+  const codeInput=document.getElementById('codeInput');
+  const resultEl=document.getElementById('codeResult');
+  if(!codeInput||!resultEl)return;
+  const code=codeInput.value.trim();
+  if(code.length!==4||!/^\d{4}$/.test(code)){
+    resultEl.textContent='⚠ Saisissez un code à 4 chiffres'; resultEl.style.color='var(--rose)'; return;
+  }
+  resultEl.textContent='Vérification…'; resultEl.style.color='var(--ink2)';
+  const now=new Date().toISOString();
+  const{data,error}=await sb.from('codes_validation')
+    .select('*').eq('code',code).eq('utilise',false).gt('expire_le',now).maybeSingle();
+  if(error||!data){
+    resultEl.textContent='❌ Code invalide ou expiré'; resultEl.style.color='var(--rose)'; return;
+  }
+  await sb.from('codes_validation').update({utilise:true}).eq('id',data.id);
+  resultEl.textContent='✓ Code validé — tampon accordé !'; resultEl.style.color='var(--jade)';
+  codeInput.value='';
+  showToast('✓ Code client validé !');
 }
 
 // ── MEMBERS ──
@@ -622,6 +658,7 @@ async function addStampManual(memberId,ruleId){
   if(!rule)return;
   const{data:cards}=await sb.from('cartes_tampons').select('*').eq('membre_id',memberId);
   const cm={};(cards||[]).forEach(c=>{cm[c.regle_id]=c.compteur;});
+  if((cm[ruleId]||0)>=rule.objectif){showToast('Carte déjà complète — offrez la récompense d\'abord');return;}
   const newCount=(cm[ruleId]||0)+1;
   await sb.from('cartes_tampons').upsert({membre_id:memberId,regle_id:ruleId,compteur:newCount,mis_a_jour_le:new Date().toISOString()},{onConflict:'membre_id,regle_id'});
   const member=members.find(m=>m.id===memberId);
@@ -640,7 +677,7 @@ async function removeStampManual(memberId,ruleId){
   if(current<=0){showToast('Aucun tampon à retirer');return;}
   await sb.from('cartes_tampons').upsert({membre_id:memberId,regle_id:ruleId,compteur:current-1,mis_a_jour_le:new Date().toISOString()},{onConflict:'membre_id,regle_id'});
   const member=members.find(m=>m.id===memberId);
-  if(member&&member.points>=rule.points_par_tampon) await sb.from('membres').update({points:(member.points||0)-rule.points_par_tampon}).eq('id',memberId);
+  if(member&&member.points>=rule.points_par_tampon) await sb.from('membres').update({points:(member.points||0)-rule.points_par_tampon,visites:Math.max(0,(member.visites||0)-1)}).eq('id',memberId);
   await sb.from('transactions').insert([{membre_id:memberId,type:'echange',points:-rule.points_par_tampon,description:'Correction tampon '+rule.nom,regle_id:ruleId}]);
   showToast('✓ Tampon retiré');
   await loadData(); await renderMemberDetail(memberId);
