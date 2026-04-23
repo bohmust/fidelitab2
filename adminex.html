@@ -860,6 +860,10 @@ async function doCreateMember(){
 document.getElementById('scanClose').onclick=closeScanner;
 
 async function openScanner(){
+  if(!navigator.mediaDevices?.getUserMedia){
+    showToast('⚠ Caméra non disponible sur cet appareil ou ce navigateur');
+    return;
+  }
   document.getElementById('scannerModal').style.display='flex';
   document.getElementById('scanHint').textContent='Pointez vers le QR code du client';
   scanActive=true;
@@ -869,7 +873,12 @@ async function openScanner(){
     const video=document.getElementById('scanVideo');
     video.srcObject=stream;
     video.play().then(()=>{ scanRaf=requestAnimationFrame(scanTick); });
-  }catch(e){ document.getElementById('scanHint').textContent='Caméra non disponible'; }
+  }catch(e){
+    const msg=e.name==='NotAllowedError'?'Permission caméra refusée — autorisez l\'accès dans les réglages du navigateur'
+             :e.name==='NotFoundError'?'Aucune caméra détectée sur cet appareil'
+             :'Caméra indisponible ('+e.message+')';
+    document.getElementById('scanHint').textContent='⚠ '+msg;
+  }
 }
 
 function scanTick(){
