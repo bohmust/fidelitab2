@@ -451,6 +451,12 @@ function buildDashboard(){
   const top3=[...members].sort((a,b)=>(b.points||0)-(a.points||0)).slice(0,3);
   const recent=txns.slice(0,8);
 
+  // Statistiques tampons par produit
+  const stampsByRule={};
+  txns.filter(t=>t.type==='tampon').forEach(t=>{ if(t.regle_id)stampsByRule[t.regle_id]=(stampsByRule[t.regle_id]||0)+1; });
+  const maxStamps=Math.max(1,...Object.values(stampsByRule));
+  const chartItems=rules.map(r=>({r,count:stampsByRule[r.id]||0})).sort((a,b)=>b.count-a.count);
+
   const topHtml=top3.map((m,i)=>`
     <div data-member-id="${m.id}" style="display:flex;gap:10px;align-items:center;padding:12px 0;border-bottom:1px solid var(--border2);cursor:pointer" onmouseover="this.style.opacity='.8'" onmouseout="this.style.opacity='1'">
       <div style="font-family:'Fraunces',serif;font-size:15px;font-weight:700;color:var(--ink3);width:20px">${i+1}</div>
@@ -499,6 +505,21 @@ function buildDashboard(){
       <div class="kpi"><div class="kpi-label">Points émis</div><div class="kpi-value" style="color:var(--gold-d)">${totPts.toLocaleString('fr-FR')}</div></div>
       <div class="kpi"><div class="kpi-label">Transactions</div><div class="kpi-value">${txns.length}</div></div>
       <div class="kpi"><div class="kpi-label">Platine</div><div class="kpi-value" style="color:#3C3489">${tc.platine}</div></div>
+    </div>
+    <div class="panel" style="margin-bottom:20px">
+      <div class="panel-title">Fidélisation par produit</div>
+      ${chartItems.length?chartItems.map(({r,count})=>`
+        <div style="margin-bottom:14px">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px">
+            <div style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600">
+              <span style="font-size:18px">${r.emoji}</span><span>${r.nom}</span>
+            </div>
+            <span style="font-family:'Fraunces',serif;font-size:14px;font-weight:700;color:var(--jade)">${count} tampon${count!==1?'s':''}</span>
+          </div>
+          <div style="height:8px;background:var(--border2);border-radius:4px;overflow:hidden">
+            <div style="height:100%;width:${Math.round(count/maxStamps*100)}%;min-width:${count?'4px':'0'};background:linear-gradient(90deg,var(--jade) 0%,#33C99A 100%);border-radius:4px;transition:width .6s ease"></div>
+          </div>
+        </div>`).join(''):'<div style="font-size:13px;color:var(--ink2)">Aucune donnée de tampon disponible.</div>'}
     </div>
     <div class="grid2">
       <div class="panel"><div class="panel-title">Activité récente</div>${recentHtml||'<div style="font-size:13px;color:var(--ink2);padding:12px 0">Aucune activité</div>'}</div>
