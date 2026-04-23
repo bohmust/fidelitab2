@@ -568,8 +568,9 @@ function buildMembers(){
   return `<div class="panel">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:8px">
       <div class="panel-title" style="margin:0">Membres (${members.length})</div>
-      <div style="display:flex;gap:8px">
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
         <button class="btn-ink" onclick="goNewMember()">+ Nouveau client</button>
+        <button class="btn-ghost" onclick="exportMembers()">⬇ Export</button>
         <button class="btn-ghost" onclick="loadData().then(render)">↻</button>
       </div>
     </div>
@@ -605,6 +606,33 @@ function filterMembers(query){
     noRes.textContent='Aucun résultat pour "'+query+'"';
     document.getElementById('memberRows').appendChild(noRes);
   }
+}
+
+// ── EXPORT EXCEL ──
+async function exportMembers(){
+  showToast('Génération de l\'export…');
+  const{data:allCards}=await sb.from('cartes_tampons').select('membre_id,regle_id,compteur');
+  const cardsMap={};
+  (allCards||[]).forEach(c=>{
+    if(!cardsMap[c.membre_id])cardsMap[c.membre_id]={};
+    cardsMap[c.membre_id][c.regle_id]=c.compteur;
+  });
+  const escape=v=>'"'+String(v==null?'':v).replace(/"/g,'""')+'"';
+  const header=['Nom','Téléphone','Email','Points','Niveau','Visites','Date inscription',...rules.map(r=>'Tampons '+r.nom+' (/'+r.objectif+')')];
+  const rows=members.map(m=>[
+    m.nom, m.telephone, m.email||'',
+    m.points||0, tierLabel(getTier(m.points||0)), m.visites||0,
+    new Date(m.cree_le).toLocaleDateString('fr-FR'),
+    ...rules.map(r=>cardsMap[m.id]?.[r.id]||0)
+  ]);
+  const csv='﻿'+[header,...rows].map(r=>r.map(escape).join(';')).join('\r\n');
+  const blob=new Blob([csv],{type:'text/csv;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url; a.download='membres_fidelitab_'+new Date().toISOString().slice(0,10)+'.csv';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToast('✓ Export téléchargé');
 }
 
 // ── MEMBER DETAIL ──
