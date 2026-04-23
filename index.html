@@ -884,7 +884,24 @@ async function doSelectProd(ruleId){
       if(timer){timer.textContent=left>0?left+'s':'Expiré';timer.style.color=left<=0?'var(--rose)':left<30?'#f59e0b':'rgba(255,255,255,.5)';}
       if(left<=0){clearInterval(codeTimer);codeTimer=null;renderCode();}
     },1000);
-  }catch(e){renderSelect();}
+  }catch(e){
+    const app=$app();app.innerHTML='';
+    const s=el('div',{class:'screen'});
+    s.appendChild(el('div',{class:'shop-header'},
+      el('div',{class:'shop-logo'},'F'),
+      el('div',null,el('div',{class:'shop-name'},SHOP.name),el('div',{class:'shop-addr'},SHOP.addr))
+    ));
+    const body=el('div',{class:'cards-section'});
+    body.appendChild(el('div',{class:'select-back',onclick:renderSelect},'← Retour'));
+    const msg=e?.message||e?.details||JSON.stringify(e)||'Erreur réseau';
+    const hint=msg.includes('codes_validation')||e?.code==='42P01'
+      ?'La table codes_validation est manquante — exécutez patch_codes.sql dans Supabase.'
+      :'Vérifiez votre connexion et réessayez.';
+    body.appendChild(el('div',{class:'err-chip'},msg));
+    body.appendChild(el('div',{style:'font-size:12px;color:var(--ink2);margin-bottom:16px;text-align:center'},hint));
+    body.appendChild(el('button',{class:'btn-primary',onclick:()=>doSelectProd(ruleId)},'Réessayer'));
+    s.appendChild(body);app.appendChild(s);
+  }
 }
 
 renderPhone();
