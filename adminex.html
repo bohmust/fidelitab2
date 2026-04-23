@@ -725,6 +725,11 @@ async function renderMemberDetail(id){
         <div class="panel-title">Historique</div>
         ${history||'<div style="font-size:13px;color:var(--ink2);padding:12px 0">Aucune transaction</div>'}
       </div>
+    </div>
+    <div class="panel" style="border-color:rgba(201,64,64,.2);background:var(--rose-l);margin-top:4px">
+      <div style="font-size:13px;font-weight:600;color:var(--rose);margin-bottom:8px">Zone dangereuse</div>
+      <div style="font-size:12px;color:var(--ink2);margin-bottom:12px">La suppression efface définitivement le membre, ses tampons et son historique.</div>
+      <button class="btn-rose" style="padding:10px 18px;font-size:13px" onclick="deleteMember('${id}','${m.nom}')">🗑 Supprimer ce membre</button>
     </div>`;
 }
 
@@ -733,6 +738,21 @@ function backToMembers(){
   document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
   document.querySelector('[data-tab="members"]').classList.add('active');
   render();
+}
+
+async function deleteMember(id,nom){
+  showConfirmDialog(
+    'Supprimer '+nom,
+    'Cette action est irréversible. Tampons et historique seront supprimés.',
+    '🗑 Confirmer la suppression',
+    async()=>{
+      const{error}=await sb.from('membres').delete().eq('id',id);
+      if(error){showToast('❌ Erreur : '+error.message);return;}
+      showToast('✓ '+nom+' supprimé(e)');
+      await loadData();
+      backToMembers();
+    }
+  );
 }
 
 // ── STAMP ACTIONS ──
