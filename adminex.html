@@ -50,19 +50,6 @@ nav{display:flex;gap:2px}
 .nav-btn:hover{color:rgba(255,255,255,.8);background:rgba(255,255,255,.08)}
 .nav-btn.active{background:rgba(255,255,255,.12);color:#fff}
 
-/* ── SCAN FAB ── */
-.scan-fab{
-  position:fixed;bottom:24px;right:20px;
-  width:58px;height:58px;border-radius:50%;
-  background:linear-gradient(135deg,var(--jade) 0%,#228C6E 100%);
-  border:none;cursor:pointer;
-  display:flex;align-items:center;justify-content:center;
-  font-size:22px;
-  box-shadow:0 4px 20px rgba(26,122,94,.35);
-  z-index:100;transition:transform .15s ease;
-}
-.scan-fab:hover{transform:scale(1.05)}
-.scan-fab:active{transform:scale(.95)}
 
 /* ── MAIN ── */
 .main{max-width:980px;margin:0 auto;padding:22px 20px 100px}
@@ -330,7 +317,6 @@ nav{display:flex;gap:2px}
   <button class="nav-btn" onclick="doLogout()" style="color:rgba(255,255,255,.35);margin-left:8px;font-size:12px">↩ Déconnexion</button>
 </div>
 
-<button class="scan-fab" id="scanFab" title="Scanner un client">📷</button>
 <div class="main" id="mainContent"></div>
 
 <!-- SCANNER -->
@@ -871,7 +857,6 @@ async function doCreateMember(){
 }
 
 // ── SCANNER ──
-document.getElementById('scanFab').onclick=openScanner;
 document.getElementById('scanClose').onclick=closeScanner;
 
 async function openScanner(){
