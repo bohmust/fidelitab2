@@ -90,6 +90,7 @@ nav{display:flex;gap:2px}
   content:'';position:absolute;top:-40px;right:-20px;
   width:140px;height:140px;border-radius:50%;
   background:radial-gradient(circle,rgba(201,146,42,.15) 0%,transparent 65%);
+  pointer-events:none;
 }
 .scan-banner-text .t1{font-family:'Fraunces',serif;font-size:15px;font-weight:600;color:#fff}
 .scan-banner-text .t2{font-size:12px;color:rgba(255,255,255,.4);margin-top:3px}
@@ -861,22 +862,31 @@ document.getElementById('scanClose').onclick=closeScanner;
 
 async function openScanner(){
   if(!navigator.mediaDevices?.getUserMedia){
-    showToast('⚠ Caméra non disponible sur cet appareil ou ce navigateur');
+    showToast('⚠ Caméra non disponible — utilisez le code 4 chiffres');
     return;
   }
   document.getElementById('scannerModal').style.display='flex';
-  document.getElementById('scanHint').textContent='Pointez vers le QR code du client';
+  document.getElementById('scanHint').textContent='Démarrage de la caméra…';
   scanActive=true;
   try{
-    const stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}});
+    let stream;
+    try{
+      // Caméra arrière en priorité (tablette/smartphone)
+      stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}});
+    }catch{
+      // Fallback : n'importe quelle caméra disponible (PC, caméra frontale)
+      stream=await navigator.mediaDevices.getUserMedia({video:true});
+    }
     scanStream=stream;
     const video=document.getElementById('scanVideo');
     video.srcObject=stream;
-    video.play().then(()=>{ scanRaf=requestAnimationFrame(scanTick); });
+    await video.play();
+    document.getElementById('scanHint').textContent='Pointez vers le QR code du client';
+    scanRaf=requestAnimationFrame(scanTick);
   }catch(e){
-    const msg=e.name==='NotAllowedError'?'Permission caméra refusée — autorisez l\'accès dans les réglages du navigateur'
+    const msg=e.name==='NotAllowedError'?'Permission refusée — autorisez la caméra dans les réglages du navigateur'
              :e.name==='NotFoundError'?'Aucune caméra détectée sur cet appareil'
-             :'Caméra indisponible ('+e.message+')';
+             :'Erreur caméra : '+e.message;
     document.getElementById('scanHint').textContent='⚠ '+msg;
   }
 }
