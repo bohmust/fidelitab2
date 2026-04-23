@@ -903,7 +903,7 @@ function scanTick(){
       } else if(code.data.startsWith('FIDELITAB_')){
         const p=code.data.split('_'); memberId=p[1]; ruleId=p[2]?parseInt(p[2]):null;
       }
-      if(memberId){ stopScan(); processScannedMember(memberId,ruleId); return; }
+      if(memberId){ closeScanner(); selMemberId=memberId; activeTab='members'; renderMemberDetail(memberId); return; }
     }
   }
   scanRaf=requestAnimationFrame(scanTick);
@@ -978,8 +978,7 @@ async function checkScanParams(){
   if(!memberId)return false;
   window.history.replaceState({},'',window.location.pathname);
   await loadData();
-  if(ruleId){ await processScannedMember(memberId,parseInt(ruleId)); }
-  else{ selMemberId=memberId; await renderMemberDetail(memberId); }
+  selMemberId=memberId; activeTab='members'; await renderMemberDetail(memberId);
   return true;
 }
 
