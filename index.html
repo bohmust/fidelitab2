@@ -452,7 +452,7 @@ const PRODUCT_FROM_QR=new URLSearchParams(window.location.search).get('p');
 
 const CODE_EXPIRE_SECONDS=120;
 let state={phone:'',member:null,rules:[],cards:{},errors:{},form:{prenom:'',nom:'',dob:'',email:'',rgpd:false},confirmedCount:0,isComplete:false,selRuleId:null,codeId:null,codeVal:null,codeExpiresAt:null};
-let pollTimer=null;
+let realtimeChannel=null;
 let codeTimer=null;
 
 const fmt=v=>v.replace(/\D/g,'').slice(0,10).replace(/(\d{2})(?=\d)/g,'$1 ').trim();
@@ -724,24 +724,30 @@ function renderConfirm(ruleId){
   app.appendChild(s);
 }
 
-// ── POLL ──
+// ── REALTIME ──
+function stopPolling(){
+  if(realtimeChannel){sb.removeChannel(realtimeChannel);realtimeChannel=null;}
+}
+
 function startPolling(ruleId){
-  if(pollTimer)clearInterval(pollTimer);
+  stopPolling();
   const last=state.cards[ruleId]||0;
-  pollTimer=setInterval(async()=>{
-    try{
-      const fresh=await getCards(state.member.id);
-      if((fresh[ruleId]||0)>last){
-        clearInterval(pollTimer);
-        state.cards=fresh;
-        state.confirmedCount=fresh[ruleId];
-        state.isComplete=fresh[ruleId]>=(state.rules.find(r=>r.id===ruleId)?.objectif||99);
-        const{data}=await sb.from('membres').select('points').eq('id',state.member.id).single();
-        if(data)state.member.points=data.points;
-        renderConfirm(ruleId);
-      }
-    }catch(e){}
-  },2000);
+  realtimeChannel=sb.channel('cartes-'+state.member.id)
+    .on('postgres_changes',{
+      event:'*',schema:'public',table:'cartes_tampons',
+      filter:'membre_id=eq.'+state.member.id
+    },async payload=>{
+      const row=payload.new;
+      if(!row||Number(row.regle_id)!==ruleId||(row.compteur||0)<=last)return;
+      stopPolling();
+      state.cards[ruleId]=row.compteur;
+      state.confirmedCount=row.compteur;
+      state.isComplete=row.compteur>=(state.rules.find(r=>r.id===ruleId)?.objectif||99);
+      const{data}=await sb.from('membres').select('points').eq('id',state.member.id).single();
+      if(data)state.member.points=data.points;
+      renderConfirm(ruleId);
+    })
+    .subscribe();
 }
 
 // ── ACTIONS ──
@@ -794,7 +800,7 @@ async function doRegister(){
 }
 
 function doLogout(){
-  if(pollTimer){clearInterval(pollTimer);pollTimer=null;}
+  stopPolling();
   if(codeTimer){clearInterval(codeTimer);codeTimer=null;}
   state={phone:'',member:null,rules:[],cards:{},errors:{},form:{prenom:'',nom:'',dob:'',email:'',rgpd:false},confirmedCount:0,isComplete:false,selRuleId:null,codeId:null,codeVal:null,codeExpiresAt:null};
   renderPhone();
@@ -850,7 +856,7 @@ function renderCode(){
   card.appendChild(timerEl);card.appendChild(bar);
   if(expired)card.appendChild(el('button',{onclick:()=>doSelectProd(state.selRuleId),style:'margin-top:16px;padding:10px 20px;border-radius:12px;border:none;background:rgba(255,255,255,.12);color:#fff;font-size:13px;font-weight:600;cursor:pointer;font-family:\'DM Sans\',sans-serif;position:relative'},'↻ Nouveau code'));
   const section=el('div',{class:'cards-section'});
-  section.appendChild(el('div',{class:'select-back',onclick:()=>{if(codeTimer){clearInterval(codeTimer);codeTimer=null;}if(pollTimer){clearInterval(pollTimer);pollTimer=null;}renderSelect();}},'← Changer de produit'));
+  section.appendChild(el('div',{class:'select-back',onclick:()=>{if(codeTimer){clearInterval(codeTimer);codeTimer=null;}stopPolling();renderSelect();}},'← Changer de produit'));
   if(r)section.appendChild(el('div',{style:'background:var(--jade-l);border:1px solid rgba(26,122,94,.15);border-radius:12px;padding:12px 14px;display:flex;align-items:center;gap:10px;margin-bottom:14px'},
     el('span',{style:'font-size:20px'},r.emoji),
     el('div',null,el('div',{style:'font-size:13px;font-weight:600;color:var(--jade)'},r.nom),el('div',{style:'font-size:11px;color:var(--jade)'},'En attente de validation…'))
@@ -863,7 +869,7 @@ function renderCode(){
 // ── SELECT PRODUCT ACTION ──
 async function doSelectProd(ruleId){
   state.selRuleId=ruleId;
-  if(pollTimer){clearInterval(pollTimer);pollTimer=null;}
+  stopPolling();
   if(codeTimer){clearInterval(codeTimer);codeTimer=null;}
   renderLoading();
   try{
