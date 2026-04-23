@@ -551,7 +551,7 @@ async function validateClientCode(){
 // ── MEMBERS ──
 function buildMembers(){
   const rows=members.map(m=>`
-    <div class="member-row" data-member-id="${m.id}" style="grid-template-columns:1fr 110px 90px 60px 80px">
+    <div class="member-row" data-member-id="${m.id}" data-search="${(m.nom+' '+m.telephone+(m.email||'')).toLowerCase()}" style="grid-template-columns:1fr 110px 90px 60px 80px">
       <div style="display:flex;gap:10px;align-items:center;min-width:0">
         <div class="avatar" style="${avS(m.nom)}">${avI(m.nom)}</div>
         <div style="min-width:0">
@@ -573,11 +573,38 @@ function buildMembers(){
         <button class="btn-ghost" onclick="loadData().then(render)">↻</button>
       </div>
     </div>
+    <div style="margin-bottom:14px">
+      <input class="inp" id="memberSearch" placeholder="🔍  Rechercher par nom, téléphone ou email…"
+        style="max-width:360px;padding:10px 14px;font-size:13px"
+        oninput="filterMembers(this.value)" autocomplete="off">
+    </div>
     <div class="table-header member-header">
       <span>Membre</span><span style="text-align:right">Téléphone</span><span style="text-align:right">Niveau</span><span style="text-align:right">Visites</span><span style="text-align:right">Points</span>
     </div>
-    ${rows||'<div style="font-size:13px;color:var(--ink2);padding:20px 0;text-align:center">Aucun membre</div>'}
+    <div id="memberRows">
+      ${rows||'<div style="font-size:13px;color:var(--ink2);padding:20px 0;text-align:center">Aucun membre</div>'}
+    </div>
   </div>`;
+}
+
+function filterMembers(query){
+  const q=query.toLowerCase().trim();
+  const rows=document.querySelectorAll('#memberRows .member-row');
+  let visible=0;
+  rows.forEach(row=>{
+    const match=!q||row.dataset.search.includes(q);
+    row.style.display=match?'':'none';
+    if(match)visible++;
+  });
+  let noRes=document.getElementById('memberNoResult');
+  if(!q||visible>0){ if(noRes)noRes.remove(); }
+  else if(!noRes){
+    noRes=document.createElement('div');
+    noRes.id='memberNoResult';
+    noRes.style.cssText='font-size:13px;color:var(--ink2);padding:20px 0;text-align:center';
+    noRes.textContent='Aucun résultat pour "'+query+'"';
+    document.getElementById('memberRows').appendChild(noRes);
+  }
 }
 
 // ── MEMBER DETAIL ──
