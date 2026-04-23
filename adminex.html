@@ -541,18 +541,23 @@ async function validateClientCode(){
   if(data.regle_id&&data.membre_id){
     const rule=rules.find(r=>r.id===data.regle_id);
     if(rule){
-      const{data:cards}=await sb.from('cartes_tampons').select('compteur').eq('membre_id',data.membre_id).eq('regle_id',data.regle_id);
-      const current=(cards&&cards[0])?cards[0].compteur:0;
+      // Lire le compteur actuel (avec fallback à 0 si RLS bloque le SELECT pour authenticated)
+      const{data:cards}=await sb.from('cartes_tampons').select('compteur').eq('membre_id',data.membre_id).eq('regle_id',data.regle_id).maybeSingle();
+      const current=cards?.compteur||0;
       if(current<rule.objectif){
-        await sb.from('cartes_tampons').upsert({membre_id:data.membre_id,regle_id:data.regle_id,compteur:current+1,mis_a_jour_le:new Date().toISOString()},{onConflict:'membre_id,regle_id'});
-        const{data:m}=await sb.from('membres').select('points,visites').eq('id',data.membre_id).single();
-        if(m) await sb.from('membres').update({points:(m.points||0)+rule.points_par_tampon,visites:(m.visites||0)+1}).eq('id',data.membre_id);
+        const{error:upsertErr}=await sb.from('cartes_tampons').upsert({membre_id:data.membre_id,regle_id:data.regle_id,compteur:current+1,mis_a_jour_le:new Date().toISOString()},{onConflict:'membre_id,regle_id'});
+        if(upsertErr){resultEl.textContent='❌ Erreur tampon : '+upsertErr.message;resultEl.style.color='var(--rose)';return;}
+        // Utilise le cache local (members[]) pour éviter un SELECT bloqué par RLS côté authenticated
+        const member=members.find(x=>x.id===data.membre_id);
+        const{error:ptsErr}=await sb.from('membres').update({points:(member?.points||0)+rule.points_par_tampon,visites:(member?.visites||0)+1}).eq('id',data.membre_id);
+        if(ptsErr){resultEl.textContent='❌ Erreur points : '+ptsErr.message;resultEl.style.color='var(--rose)';return;}
         await sb.from('transactions').insert([{membre_id:data.membre_id,type:'tampon',points:rule.points_par_tampon,description:'Tampon '+rule.nom+' (code '+code+')',regle_id:data.regle_id}]);
       }
     }
   }
   resultEl.textContent='✓ Code validé — tampon accordé !'; resultEl.style.color='var(--jade)';
   codeInput.value='';
+  await loadData();
   showToast('✓ Code client validé !');
 }
 
